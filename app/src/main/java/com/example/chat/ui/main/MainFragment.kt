@@ -43,6 +43,16 @@ class MainFragment: BaseFragment<FragmentMainBinding>(FragmentMainBinding::infla
         binding.channelListHeaderView.setOnUserAvatarClickListener {
             binding.drawerLayout.openDrawer(Gravity.START)
         }
+
+        binding.channelListHeaderView.setOnActionButtonClickListener {
+            val action = MainFragmentDirections.actionMainFragmentToUsersFragment()
+            findNavController().navigate(action)
+        }
+
+        binding.channelsView.setChannelItemClickListener { channel ->
+            val action = MainFragmentDirections.actionMainFragmentToChatFragment(channel.cid)
+            findNavController().navigate(action)
+        }
     }
 
     private fun setupChannels() {
