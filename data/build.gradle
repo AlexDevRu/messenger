@@ -1,26 +1,19 @@
 plugins {
-    id 'com.android.application'
+    id 'com.android.library'
     id 'kotlin-android'
-    id 'androidx.navigation.safeargs.kotlin'
-    id 'kotlin-parcelize'
 }
-
-apply plugin: 'kotlin-kapt'
-apply plugin: 'com.android.application'
-apply plugin: 'com.google.gms.google-services'
 
 android {
     compileSdk 31
 
     defaultConfig {
-        applicationId "com.example.chat"
         minSdk 21
         targetSdk 31
         versionCode 1
         versionName "1.0"
-        multiDexEnabled true
 
         testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
+        consumerProguardFiles "consumer-rules.pro"
     }
 
     buildTypes {
@@ -36,46 +29,29 @@ android {
     kotlinOptions {
         jvmTarget = '1.8'
     }
-    buildFeatures {
-        viewBinding true
-    }
 }
 
 dependencies {
     implementation project(path: ':domain')
-    implementation project(path: ':data')
 
-    // Koin
-    implementation "io.insert-koin:koin-android:$koin_version"
-
-    // Client + offline + UI components
-    implementation "io.getstream:stream-chat-android-ui-components:$stream_version"
-
-    // Navigation Component
-    implementation "androidx.navigation:navigation-fragment-ktx:$nav_component_version"
-    implementation "androidx.navigation:navigation-ui-ktx:$nav_component_version"
-
-    // WorkManager
-    implementation "androidx.work:work-runtime-ktx:$work_manager_version"
+    implementation "io.getstream:stream-chat-android-offline:$stream_version"
 
     // Firebase Boom
     implementation platform("com.google.firebase:firebase-bom:$firebase_boom_version")
-    implementation 'com.google.firebase:firebase-analytics-ktx'
 
     // Firebase Auth
     implementation "com.google.android.gms:play-services-auth:$play_services_auth_version"
     implementation 'com.google.firebase:firebase-auth-ktx'
 
+    // Firebase Firestore
+    implementation 'com.google.firebase:firebase-firestore-ktx'
 
-
-
-    implementation 'com.github.razir.progressbutton:progressbutton:2.1.0'
-    implementation 'com.github.Cir0X:snackalert:0.3'
+    implementation 'org.jetbrains.kotlinx:kotlinx-coroutines-play-services:1.1.1'
+    implementation 'org.jetbrains.kotlinx:kotlinx-coroutines-android:1.5.2'
 
     implementation 'androidx.core:core-ktx:1.6.0'
     implementation 'androidx.appcompat:appcompat:1.3.1'
     implementation 'com.google.android.material:material:1.4.0'
-    implementation 'androidx.constraintlayout:constraintlayout:2.1.1'
     testImplementation 'junit:junit:4.+'
     androidTestImplementation 'androidx.test.ext:junit:1.1.3'
     androidTestImplementation 'androidx.test.espresso:espresso-core:3.4.0'

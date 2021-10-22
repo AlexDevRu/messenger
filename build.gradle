@@ -8,6 +8,7 @@ buildscript {
         classpath "com.android.tools.build:gradle:7.0.2"
         classpath "org.jetbrains.kotlin:kotlin-gradle-plugin:1.5.20"
         classpath "androidx.navigation:navigation-safe-args-gradle-plugin:2.4.0-alpha04"
+        classpath 'com.google.gms:google-services:4.3.10'
 
         // NOTE: Do not place your application dependencies here; they belong
         // in the individual module build.gradle files
@@ -25,4 +26,8 @@ task clean(type: Delete) {
 ext {
     nav_component_version = "2.4.0-alpha04"
     stream_version = "4.20.0"
+    work_manager_version = "2.7.0"
+    koin_version = "3.1.2"
+    firebase_boom_version = "28.4.2"
+    play_services_auth_version = "19.2.0"
 }
