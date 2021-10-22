@@ -18,8 +18,10 @@
     <string name="yes">Yes</string>
     <string name="no">No</string>
     <string name="logout_confirm">Are you sure you want to logout?</string>
-    <string name="logout_successfully">Are you sure you want to logout?</string>
+    <string name="logout_successfully">Logout is successfully</string>
     <string name="logout_question">Logout?</string>
 
     <string name="search">Search</string>
+
+    <string name="small_length_validation">* %s should be contain at less 4 characters</string>
 </resources>
