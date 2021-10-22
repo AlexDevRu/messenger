@@ -1,18 +1,17 @@
 package com.example.chat.ui.sign_in
 
 import android.util.Log
-import androidx.lifecycle.viewModelScope
-import com.example.chat.R
 import com.example.chat.ui.base.BaseViewModel
 import io.getstream.chat.android.client.ChatClient
 import io.getstream.chat.android.client.models.User
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.delay
-import kotlinx.coroutines.launch
 
 class SignInVM: BaseViewModel<SignInContract.Event, SignInContract.State, SignInContract.Effect>() {
 
     private val client = ChatClient.instance()
+
+    companion object {
+        private const val minCharacters = 4
+    }
 
     override fun createInitialState(): SignInContract.State {
         return SignInContract.State(
@@ -39,9 +38,9 @@ class SignInVM: BaseViewModel<SignInContract.Event, SignInContract.State, SignIn
         Log.d("asd", currentState.firstName!!)
 
         val user = User(
-            id = currentState.userName!!,
+            id = currentState.userName!!.trim(),
             extraData = mutableMapOf(
-                "name" to currentState.firstName!!
+                "name" to currentState.firstName!!.trim()
             )
         )
         val token = client.devToken(user.id)
@@ -58,8 +57,8 @@ class SignInVM: BaseViewModel<SignInContract.Event, SignInContract.State, SignIn
 
     private fun validateUserName(userName: String) {
         setState { copy(userName = userName) }
-        if(userName.length < 4) {
-            setState { copy(userNameValidationError = "Error username") }
+        if(userName.length in 1 until minCharacters) {
+            setState { copy(userNameValidationError = SignInContract.InputValidationError.LessCharactersException(minCharacters)) }
         } else {
             setState { copy(userNameValidationError = null) }
         }
@@ -67,8 +66,8 @@ class SignInVM: BaseViewModel<SignInContract.Event, SignInContract.State, SignIn
 
     private fun validateFirstName(firstName: String) {
         setState { copy(firstName = firstName) }
-        if(firstName.length < 4) {
-            setState { copy(firstNameValidationError = "Error username") }
+        if(firstName.length in 1 until minCharacters) {
+            setState { copy(firstNameValidationError = SignInContract.InputValidationError.LessCharactersException(minCharacters)) }
         } else {
             setState { copy(firstNameValidationError = null) }
         }

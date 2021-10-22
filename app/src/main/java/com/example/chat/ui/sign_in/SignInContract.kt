@@ -13,14 +13,18 @@ object SignInContract {
 
     data class State(
         val userName: String? = null,
-        val userNameValidationError: String? = null,
+        val userNameValidationError: InputValidationError? = null,
         val firstName: String? = null,
-        val firstNameValidationError: String? = null,
+        val firstNameValidationError: InputValidationError? = null,
         val loading: Boolean = false
     ): UiState
 
     sealed class Effect : UiEffect {
         object SignInSuccess: Effect()
         data class SignInFailure(val message: String?): Effect()
+    }
+
+    sealed class InputValidationError {
+        data class LessCharactersException(val minCharacters: Int): InputValidationError()
     }
 }

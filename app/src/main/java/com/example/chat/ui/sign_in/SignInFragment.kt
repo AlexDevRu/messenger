@@ -15,6 +15,8 @@ import com.github.razir.progressbutton.attachTextChangeAnimator
 import com.github.razir.progressbutton.bindProgressButton
 import com.github.razir.progressbutton.hideProgress
 import com.github.razir.progressbutton.showProgress
+import io.getstream.chat.android.client.ChatClient
+import io.getstream.chat.android.livedata.ChatDomain
 import kotlinx.coroutines.flow.collect
 import net.cr0wd.snackalert.SnackAlert
 
@@ -31,45 +33,50 @@ class SignInFragment: BaseFragment<FragmentSignInBinding>(FragmentSignInBinding:
         binding.signInButton.attachTextChangeAnimator()
 
         binding.userNameEditText.doAfterTextChanged {
-            viewModel.setEvent(SignInContract.Event.OnValidateUserName(it.toString()))
+            if(it != null)
+                viewModel.setEvent(SignInContract.Event.OnValidateUserName(it.toString()))
         }
 
         binding.firstNameEditText.doAfterTextChanged {
-            viewModel.setEvent(SignInContract.Event.OnValidateFirstName(it.toString()))
+            if(it != null)
+                viewModel.setEvent(SignInContract.Event.OnValidateFirstName(it.toString()))
         }
 
         binding.signInButton.setOnClickListener {
             viewModel.setEvent(SignInContract.Event.OnSignInClicked)
         }
 
-        init()
+        observeState()
 
-        observe()
+        //ChatClient.instance().channel("")
+
+        //ChatDomain.instance().cha
 
         observeEffects()
     }
 
-    private fun init() {
-        binding.userNameEditText.setText(viewModel.uiState.value.userName)
-        binding.firstNameEditText.setText(viewModel.uiState.value.firstName)
-    }
-
-    private fun observe() {
+    private fun observeState() {
         lifecycleScope.launchWhenStarted {
             viewModel.uiState.collect {
 
                 Log.w("asd", "username ${it.userName.toString()}")
                 Log.w("asd", "username error ${it.userNameValidationError.toString()}")
 
-                if(it.userNameValidationError != null) {
-                    binding.userNameInputLayout.isErrorEnabled = true
-                    binding.userNameInputLayout.error = it.userNameValidationError
-                } else {
-                    binding.userNameInputLayout.isErrorEnabled = false
+                binding.userNameInputLayout.isErrorEnabled = it.userNameValidationError != null
+
+                binding.userNameInputLayout.error = when(it.userNameValidationError) {
+                    is SignInContract.InputValidationError.LessCharactersException ->
+                        getString(R.string.small_length_validation, getString(R.string.username))
+                    else -> null
                 }
 
                 binding.firstNameInputLayout.isErrorEnabled = it.firstNameValidationError != null
-                binding.firstNameInputLayout.error = it.firstNameValidationError
+
+                binding.firstNameInputLayout.error = when(it.firstNameValidationError) {
+                    is SignInContract.InputValidationError.LessCharactersException ->
+                        getString(R.string.small_length_validation, getString(R.string.first_name))
+                    else -> null
+                }
 
                 if(it.loading) {
                     binding.signInButton.showProgress {
