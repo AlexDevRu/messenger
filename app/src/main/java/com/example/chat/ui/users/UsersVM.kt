@@ -37,26 +37,15 @@ class UsersVM: BaseViewModel<UsersContract.Event, UsersContract.State, UsersCont
     }
 
     private fun queryAllUsers() {
-        setState { copy(loading = true) }
         val request = QueryUsersRequest(
             filter = Filters.ne("id", client.getCurrentUser()!!.id),
             offset = 0,
             limit = 100
         )
-        client.queryUsers(request).enqueue { result ->
-            if (result.isSuccess) {
-                val users = result.data()
-                setState { copy(users = users) }
-            } else {
-                Log.e(TAG, result.error().message.toString())
-                setEffect { UsersContract.Effect.SearchFailure(result.error().message) }
-            }
-            setState { copy(loading = false) }
-        }
+        getUsersByRequest(request)
     }
 
     private fun searchUser(query: String) {
-        setState { copy(loading = true) }
         val filters = Filters.and(
             Filters.autocomplete("id", query),
             Filters.ne("id", client.getCurrentUser()!!.id)
@@ -66,7 +55,11 @@ class UsersVM: BaseViewModel<UsersContract.Event, UsersContract.State, UsersCont
             offset = 0,
             limit = 100
         )
+        getUsersByRequest(request)
+    }
 
+    private fun getUsersByRequest(request: QueryUsersRequest) {
+        setState { copy(loading = true) }
         client.queryUsers(request).enqueue { result ->
             if (result.isSuccess) {
                 val users = result.data()
