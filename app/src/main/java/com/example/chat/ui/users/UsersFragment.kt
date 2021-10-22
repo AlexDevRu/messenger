@@ -1,7 +1,6 @@
 package com.example.chat.ui.users
 
 import android.os.Bundle
-import android.util.Log
 import android.view.Menu
 import android.view.MenuInflater
 import android.view.View
@@ -15,7 +14,6 @@ import com.example.chat.databinding.FragmentUsersBinding
 import com.example.chat.ui.adapters.UsersAdapter
 import com.example.chat.ui.base.BaseFragment
 import kotlinx.coroutines.flow.collect
-import kotlinx.coroutines.launch
 import net.cr0wd.snackalert.SnackAlert
 
 class UsersFragment: BaseFragment<FragmentUsersBinding>(FragmentUsersBinding::inflate) {
@@ -42,7 +40,6 @@ class UsersFragment: BaseFragment<FragmentUsersBinding>(FragmentUsersBinding::in
 
         usersAdapter = UsersAdapter {
             viewModel.setEvent(UsersContract.Event.OnUserClick(it.id))
-
         }
         binding.usersRecyclerView.adapter = usersAdapter
 
@@ -51,7 +48,7 @@ class UsersFragment: BaseFragment<FragmentUsersBinding>(FragmentUsersBinding::in
     }
 
     private fun observeEffect() {
-        lifecycleScope.launch {
+        lifecycleScope.launchWhenStarted {
             viewModel.effect.collect {
                 when(it) {
                     is UsersContract.Effect.GoToChat -> {
@@ -67,7 +64,7 @@ class UsersFragment: BaseFragment<FragmentUsersBinding>(FragmentUsersBinding::in
     }
 
     private fun observeState() {
-        lifecycleScope.launch {
+        lifecycleScope.launchWhenStarted {
             viewModel.uiState.collect {
                 usersAdapter.submitList(it.users)
             }
