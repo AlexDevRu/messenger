@@ -23,5 +23,15 @@
 
     <string name="search">Search</string>
 
-    <string name="small_length_validation">* %s should be contain at less 4 characters</string>
+    <string name="small_length_validation">* %s should be contain at less %d characters</string>
+    <string name="password_no_numbers_validation">* Password should be contain numbers</string>
+    <string name="password_same_case_validation">* Password should be contain different letter cases</string>
+
+    <string name="user_already_exists_exception">User with this name is already exists. Try again</string>
+
+    <string name="remember_me">Remember me</string>
+    <string name="sign_up">Sign up</string>
+
+    <string name="sign_in_button_text">I don\'t have an account yet</string>
+    <string name="sign_up_button_text">I already have an account</string>
 </resources>

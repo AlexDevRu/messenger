@@ -1,4 +1,4 @@
-package com.example.domain.use_cases.local
+package com.example.domain.use_cases.remote
 
 import com.example.domain.common.Result
 import com.example.domain.repositories.local.IPreferencesRepository
@@ -25,4 +25,6 @@ class SignInUserUseCase(
             Result.Failure(e)
         }
     }
+
+    suspend operator fun invoke(userId: String) = streamRepository.connectUser(userId)
 }

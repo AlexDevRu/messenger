@@ -1,4 +1,4 @@
-package com.example.domain.use_cases.local
+package com.example.domain.use_cases.remote
 
 import com.example.domain.common.Result
 import com.example.domain.repositories.local.IPreferencesRepository

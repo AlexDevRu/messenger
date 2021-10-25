@@ -5,7 +5,6 @@ import com.example.domain.exceptions.UserAlreadyExistsException
 import com.example.domain.exceptions.WrongCredentialsException
 import com.example.domain.repositories.remote.IFirestoreRepository
 import com.example.domain.security.md5
-import com.google.firebase.auth.ktx.auth
 import com.google.firebase.firestore.ktx.firestore
 import com.google.firebase.ktx.Firebase
 import kotlinx.coroutines.tasks.await
@@ -26,12 +25,14 @@ class FirestoreRepository: IFirestoreRepository {
             val hashedPassword = md5(password)
 
             val data = store.collection(USERS_COLLECTION)
-                .document(Firebase.auth.currentUser!!.uid)
+                .whereEqualTo(USER_ID, userId)
                 .get()
                 .await()
 
-            val remoteUserName = data.data?.get(USER_ID) as String
-            val remotePassword = data.data?.get(PASSWORD) as String
+            val document = data.documents.firstOrNull()
+
+            val remoteUserName = document?.get(USER_ID) as String
+            val remotePassword = document.get(PASSWORD) as String
 
             if(remoteUserName == userId && remotePassword == hashedPassword) {
                 Result.Success(Unit)
@@ -51,7 +52,7 @@ class FirestoreRepository: IFirestoreRepository {
                 val hashedPassword = md5(password)
 
                 store.collection(USERS_COLLECTION)
-                    .document(Firebase.auth.currentUser!!.uid)
+                    .document()
                     .set(mapOf(
                         USER_ID to userId,
                         PASSWORD to hashedPassword
@@ -59,9 +60,9 @@ class FirestoreRepository: IFirestoreRepository {
                     .await()
 
                 Result.Success(Unit)
+            } else {
+                throw UserAlreadyExistsException()
             }
-
-            throw UserAlreadyExistsException()
         } catch (e: Exception) {
             Result.Failure(e)
         }

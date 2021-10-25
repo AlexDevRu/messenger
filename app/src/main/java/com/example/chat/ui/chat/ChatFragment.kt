@@ -53,11 +53,51 @@ class ChatFragment : BaseFragment<FragmentChatBinding>(FragmentChatBinding::infl
         val messageInputViewModel: MessageInputViewModel by viewModels { factory }
 
         messageListHeaderViewModel.bindView(binding.messagesHeaderView, viewLifecycleOwner)
+
+        /*val disposable: Disposable = channelClient.subscribeFor<NewMessageEvent> { newMessageEvent ->
+            val message = newMessageEvent.message
+        }*/
+        // Let both message list header and message input know when we open a thread
+        messageListViewModel.mode.observe(this) { mode ->
+            when (mode) {
+                is MessageListViewModel.Mode.Thread -> {
+                    messageListHeaderViewModel.setActiveThread(mode.parentMessage)
+                    messageInputViewModel.setActiveThread(mode.parentMessage)
+                }
+                MessageListViewModel.Mode.Normal -> {
+                    messageListHeaderViewModel.resetThread()
+                    messageInputViewModel.resetThread()
+                }
+            }
+        }
+
+        // Let the message input know when we are editing a message
+        binding.messageList.setMessageEditHandler(messageInputViewModel::postMessageToEdit)
+
+        // Handle navigate up state
+        messageListViewModel.state.observe(this) { state ->
+            if (state is MessageListViewModel.State.NavigateUp) {
+                // Handle navigate up
+            }
+        }
+
+        // Handle back button behaviour correctly when you're in a thread
+        val backHandler = {
+            messageListViewModel.onEvent(MessageListViewModel.Event.BackButtonPressed)
+        }
+        binding.messagesHeaderView.setBackButtonClickListener(backHandler)
+
+
         messageListViewModel.bindView(binding.messageList, viewLifecycleOwner)
         messageInputViewModel.bindView(binding.messageInputView, viewLifecycleOwner)
     }
 
     private fun deleteChannelIfEmpty() {
         viewModel.deleteChannel(args.channelId)
+    }
+
+    override fun onDestroyView() {
+        super.onDestroyView()
+
     }
 }

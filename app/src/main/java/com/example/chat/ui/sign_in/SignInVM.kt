@@ -1,15 +1,21 @@
 package com.example.chat.ui.sign_in
 
 import android.util.Log
+import androidx.lifecycle.viewModelScope
 import com.example.chat.ui.base.BaseViewModel
-import io.getstream.chat.android.client.ChatClient
-import io.getstream.chat.android.client.models.User
+import com.example.domain.common.Result
+import com.example.domain.use_cases.remote.SignInUserUseCase
+import com.example.domain.use_cases.remote.SignUpUserUseCase
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
 
-class SignInVM: BaseViewModel<SignInContract.Event, SignInContract.State, SignInContract.Effect>() {
-
-    private val client = ChatClient.instance()
+class SignInVM(
+    private val signInUserUseCase: SignInUserUseCase,
+    private val signUpUserUseCase: SignUpUserUseCase
+) : BaseViewModel<SignInContract.Event, SignInContract.State, SignInContract.Effect>() {
 
     companion object {
+        private const val TAG = "SignInVM"
         private const val minCharacters = 4
     }
 
@@ -17,59 +23,74 @@ class SignInVM: BaseViewModel<SignInContract.Event, SignInContract.State, SignIn
         return SignInContract.State(
             userName = null,
             userNameValidationError = null,
-            firstName = null,
-            firstNameValidationError = null,
+            password = null,
+            passwordValidationError = null,
+            saveSignInStatus = true,
             loading = false
         )
     }
 
     override fun handleEvent(event: SignInContract.Event) {
         when (event) {
-            is SignInContract.Event.OnSignInClicked -> authentificateUser()
+            SignInContract.Event.OnSignInClicked -> authentificateUser()
             is SignInContract.Event.OnValidateUserName -> validateUserName(event.userName)
-            is SignInContract.Event.OnValidateFirstName -> validateFirstName(event.firstName)
+            is SignInContract.Event.OnValidatePassword -> validatePassword(event.password)
+            is SignInContract.Event.OnSignInStatusChanged -> setState { copy(saveSignInStatus = event.status) }
+            SignInContract.Event.OnModeChanged -> setState { copy(mode = currentState.mode.toggle()) }
         }
     }
 
     private fun authentificateUser() {
         setState { copy(loading = true) }
 
-        Log.d("asd", currentState.userName!!)
-        Log.d("asd", currentState.firstName!!)
+        Log.d(TAG, currentState.userName!!)
+        Log.d(TAG, currentState.password!!)
 
-        val user = User(
-            id = currentState.userName!!.trim(),
-            extraData = mutableMapOf(
-                "name" to currentState.firstName!!.trim()
-            )
-        )
-        val token = client.devToken(user.id)
+        val userId = currentState.userName!!.trim()
 
-        client.connectUser(user, token).enqueue { result ->
-            if (result.isSuccess) {
-                setEffect { SignInContract.Effect.SignInSuccess }
+        viewModelScope.launch(Dispatchers.IO) {
+            setState { copy(loading = true) }
+
+            val result = if(currentState.mode == SignInContract.SIGN_MODE.SIGN_IN) {
+                signInUserUseCase(userId, currentState.password!!, currentState.saveSignInStatus)
             } else {
-                setEffect { SignInContract.Effect.SignInFailure(result.error().message) }
+                signUpUserUseCase(userId, currentState.password!!, currentState.saveSignInStatus)
             }
+
             setState { copy(loading = false) }
+
+            when(result) {
+                is Result.Success -> setEffect { SignInContract.Effect.SignInSuccess }
+                is Result.Failure -> setEffect { SignInContract.Effect.SignInFailure(result.throwable) }
+            }
         }
     }
 
     private fun validateUserName(userName: String) {
         setState { copy(userName = userName) }
-        if(userName.length in 1 until minCharacters) {
-            setState { copy(userNameValidationError = SignInContract.InputValidationError.LessCharactersException(minCharacters)) }
-        } else {
+
+        val validator = SignInContract.InputValidationError.LessCharactersError(minCharacters)
+
+        if(validator.validate(userName)) {
             setState { copy(userNameValidationError = null) }
+        } else {
+            setState { copy(userNameValidationError = listOf(validator)) }
         }
     }
 
-    private fun validateFirstName(firstName: String) {
-        setState { copy(firstName = firstName) }
-        if(firstName.length in 1 until minCharacters) {
-            setState { copy(firstNameValidationError = SignInContract.InputValidationError.LessCharactersException(minCharacters)) }
+    private fun validatePassword(password: String) {
+        setState { copy(password = password) }
+
+        val errors = listOf(
+            SignInContract.InputValidationError.LessCharactersError(minCharacters),
+            SignInContract.InputValidationError.NoNumbersError,
+            SignInContract.InputValidationError.SameCaseError
+        ).filter { !it.validate(password) }
+
+        if(errors.isNotEmpty()) {
+            setState { copy(passwordValidationError = errors) }
         } else {
-            setState { copy(firstNameValidationError = null) }
+            setState { copy(passwordValidationError = null) }
         }
     }
 

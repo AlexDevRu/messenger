@@ -7,13 +7,16 @@ import android.view.View
 import android.widget.TextView
 import androidx.appcompat.app.AlertDialog
 import androidx.fragment.app.viewModels
+import androidx.lifecycle.lifecycleScope
 import androidx.navigation.fragment.findNavController
+import androidx.navigation.fragment.navArgs
+import androidx.navigation.ui.setupWithNavController
 import com.example.chat.R
 import com.example.chat.databinding.FragmentMainBinding
 import com.example.chat.ui.base.BaseFragment
-import io.getstream.chat.android.client.ChatClient
 import io.getstream.chat.android.client.models.Channel
 import io.getstream.chat.android.client.models.Filters
+import io.getstream.chat.android.client.models.User
 import io.getstream.chat.android.livedata.ChatDomain
 import io.getstream.chat.android.ui.avatar.AvatarView
 import io.getstream.chat.android.ui.channel.list.header.viewmodel.ChannelListHeaderViewModel
@@ -21,6 +24,9 @@ import io.getstream.chat.android.ui.channel.list.header.viewmodel.bindView
 import io.getstream.chat.android.ui.channel.list.viewmodel.ChannelListViewModel
 import io.getstream.chat.android.ui.channel.list.viewmodel.bindView
 import io.getstream.chat.android.ui.channel.list.viewmodel.factory.ChannelListViewModelFactory
+import kotlinx.coroutines.flow.collect
+import net.cr0wd.snackalert.SnackAlert
+import org.koin.androidx.viewmodel.ext.android.viewModel
 
 class MainFragment: BaseFragment<FragmentMainBinding>(FragmentMainBinding::inflate) {
 
@@ -28,13 +34,12 @@ class MainFragment: BaseFragment<FragmentMainBinding>(FragmentMainBinding::infla
         private const val TAG = "ChannelFragment"
     }
 
-    private val client = ChatClient.instance()
+    private val viewModel by viewModel<MainVM>()
+
+    private val args by navArgs<MainFragmentArgs>()
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
-
-        setupChannels()
-        setupDrawer()
 
         binding.channelsView.setChannelDeleteClickListener { channel ->
             deleteChannel(channel)
@@ -53,12 +58,52 @@ class MainFragment: BaseFragment<FragmentMainBinding>(FragmentMainBinding::infla
             val action = MainFragmentDirections.actionMainFragmentToChatFragment(channel.cid)
             findNavController().navigate(action)
         }
+
+        observeState()
+        observeEffects()
+
+        if(savedInstanceState == null) {
+            viewModel.handleEvent(MainContract.Event.OnUserLoad(args.userId))
+        }
     }
 
-    private fun setupChannels() {
+    private fun observeState() {
+        lifecycleScope.launchWhenStarted {
+            viewModel.uiState.collect {
+                if(it.user != null) {
+                    setupChannels(it.user.id)
+                    setupDrawer(it.user)
+                    binding.channelsView.hideLoadingView()
+                }
+
+                if(it.loading) binding.channelsView.showLoadingView()
+                else binding.channelsView.hideLoadingView()
+            }
+        }
+    }
+
+    private fun observeEffects() {
+        lifecycleScope.launchWhenStarted {
+            viewModel.effect.collect {
+                when(it) {
+                    MainContract.Effect.Logout -> {
+                        val action = MainFragmentDirections.actionMainFragmentToSignInFragment()
+                        findNavController().navigate(action)
+                        SnackAlert.success(binding.root, R.string.logout_successfully)
+                    }
+                    is MainContract.Effect.ShowErrorSnackbar -> {
+                        Log.e("asd", it.message.orEmpty())
+                        SnackAlert.error(binding.root, it.message.orEmpty())
+                    }
+                }
+            }
+        }
+    }
+
+    private fun setupChannels(userId: String) {
         val filters = Filters.and(
             Filters.eq("type", "messaging"),
-            Filters.`in`("members", listOf(client.getCurrentUser()!!.id))
+            Filters.`in`("members", listOf(userId))
         )
         val viewModelFactory = ChannelListViewModelFactory(
             filters,
@@ -81,30 +126,27 @@ class MainFragment: BaseFragment<FragmentMainBinding>(FragmentMainBinding::infla
         }
     }
 
-    private fun setupDrawer() {
+    private fun setupDrawer(user: User) {
+        binding.navigationView.setupWithNavController(findNavController())
         binding.navigationView.setNavigationItemSelectedListener { menuItem ->
             if (menuItem.itemId == R.id.logout_menu) {
                 logout()
             }
             false
         }
-        val currentUser = client.getCurrentUser()!!
         val headerView = binding.navigationView.getHeaderView(0)
         val headerAvatar = headerView.findViewById<AvatarView>(R.id.avatarView)
-        headerAvatar.setUserData(currentUser)
+        headerAvatar.setUserData(user)
         val headerId = headerView.findViewById<TextView>(R.id.id_textView)
-        headerId.text = currentUser.id
+        headerId.text = user.id
         val headerName = headerView.findViewById<TextView>(R.id.name_textView)
-        headerName.text = currentUser.name
+        headerName.text = user.name
     }
 
     private fun logout() {
         val builder = AlertDialog.Builder(requireContext())
         builder.setPositiveButton(getString(R.string.yes)) { _, _ ->
-            client.disconnect()
-            val action = MainFragmentDirections.actionMainFragmentToSignInFragment()
-            findNavController().navigate(action)
-            showSnackBar(getString(R.string.logout_successfully))
+            viewModel.setEvent(MainContract.Event.OnLogout)
         }
         builder.setNegativeButton(getString(R.string.no)) { _, _ -> }
         builder.setTitle(getString(R.string.logout_question))

@@ -4,11 +4,12 @@ import android.os.Bundle
 import androidx.appcompat.app.AppCompatActivity
 import androidx.navigation.fragment.NavHostFragment
 import com.example.chat.R
-import io.getstream.chat.android.client.ChatClient
+import com.example.domain.use_cases.local.preferences.GetUserUseCase
+import org.koin.android.ext.android.inject
 
 class MainActivity : AppCompatActivity() {
 
-    private val client = ChatClient.instance()
+    private val getUserUseCase by inject<GetUserUseCase>()
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -21,9 +22,11 @@ class MainActivity : AppCompatActivity() {
         val navController = navHostFragment.navController
 
         if(navController.currentDestination?.id == R.id.signInFragment) {
-            val currentUser = client.getCurrentUser()
-            if(currentUser != null) {
-                navController.navigate(R.id.mainFragment)
+            val userId = getUserUseCase()
+            if(userId != null) {
+                navController.navigate(R.id.mainFragment, Bundle().apply {
+                    putString("userId", userId)
+                })
             }
         }
     }
