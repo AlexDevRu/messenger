@@ -12,7 +12,7 @@ object EditProfileContract {
     sealed class Event: UiEvent {
         object OnApplyChanges: Event()
         data class OnFirstNameChanged(val firstName: String): Event()
-        data class OnImageUpload(val bitmap: Bitmap): Event()
+        data class OnImageUpload(val data: Any): Event()
     }
 
     data class State(

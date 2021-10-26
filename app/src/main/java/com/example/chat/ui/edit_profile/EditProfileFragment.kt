@@ -14,6 +14,7 @@ import androidx.activity.result.contract.ActivityResultContracts
 import androidx.core.widget.doAfterTextChanged
 import androidx.lifecycle.lifecycleScope
 import androidx.navigation.fragment.findNavController
+import com.canhub.cropper.*
 import com.example.chat.R
 import com.example.chat.databinding.FragmentEditProfileBinding
 import com.example.chat.ui.base.BaseFragment
@@ -37,27 +38,25 @@ class EditProfileFragment: BaseFragment<FragmentEditProfileBinding>(FragmentEdit
 
     private val mainViewModel by sharedViewModel<MainVM>()
 
-    private val pickImageActivityResultLauncher = registerForActivityResult(
-        ActivityResultContracts.StartActivityForResult()
-    ) { result ->
-        if (result?.resultCode == Activity.RESULT_OK) {
-            val data = result.data?.data
-            if(data != null) {
-                Log.w("asd", "avatar uri ${data.path}")
-
-                val bitmap = BitmapFactory.decodeStream(requireContext().contentResolver.openInputStream(data))
-
-                viewModel.setEvent(EditProfileContract.Event.OnImageUpload(bitmap))
-            }
+    private val pickImagePermissionLauncher = registerForActivityResult(
+        ActivityResultContracts.RequestMultiplePermissions()
+    ){
+        if(it.values.all { it }) {
+            pickImage()
         }
     }
 
-
-    private val readExternalStoragePermissionLauncher = registerForActivityResult(
-        ActivityResultContracts.RequestPermission()
-    ){
-        if(it) {
-            pickImage()
+    private val cropImage = registerForActivityResult(CropImageContract()) { result ->
+        if (result.isSuccessful) {
+            // use the returned uri
+            val uriContent = result.uriContent
+            if(uriContent != null) {
+                val bitmap = BitmapFactory.decodeStream(requireContext().contentResolver.openInputStream(uriContent))
+                viewModel.setEvent(EditProfileContract.Event.OnImageUpload(bitmap))
+            }
+        } else {
+            // an error occurred
+            val exception = result.error
         }
     }
 
@@ -81,8 +80,12 @@ class EditProfileFragment: BaseFragment<FragmentEditProfileBinding>(FragmentEdit
 
         binding.avatarView.setOnClickListener {
             if(Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
-                readExternalStoragePermissionLauncher.launch(
-                    Manifest.permission.READ_EXTERNAL_STORAGE
+                pickImagePermissionLauncher.launch(
+                    arrayOf(
+                        Manifest.permission.READ_EXTERNAL_STORAGE,
+                        Manifest.permission.WRITE_EXTERNAL_STORAGE,
+                        Manifest.permission.CAMERA
+                    )
                 )
             } else {
                 pickImage()
@@ -94,6 +97,8 @@ class EditProfileFragment: BaseFragment<FragmentEditProfileBinding>(FragmentEdit
         observeState()
         observeEffects()
     }
+
+
 
     private fun observeEffects() {
         lifecycleScope.launchWhenStarted {
@@ -113,8 +118,12 @@ class EditProfileFragment: BaseFragment<FragmentEditProfileBinding>(FragmentEdit
     }
 
     private fun pickImage() {
-        val intent = Intent(Intent.ACTION_GET_CONTENT).setType("image/*")
-        pickImageActivityResultLauncher.launch(intent)
+        cropImage.launch(
+            CropImageContractOptions(null, CropImageOptions())
+                .setGuidelines(CropImageView.Guidelines.ON)
+                .setMinCropResultSize(100,100)
+                .setFixAspectRatio(true)
+        )
     }
 
     private fun getMessageByValidationError(error: InputValidationError) = when(error) {

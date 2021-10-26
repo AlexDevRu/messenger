@@ -39,7 +39,7 @@ class EditProfileVM(
         when(event) {
             EditProfileContract.Event.OnApplyChanges -> applyChanges()
             is EditProfileContract.Event.OnFirstNameChanged -> validateFirstName(event.firstName)
-            is EditProfileContract.Event.OnImageUpload -> uploadImageBitmap(event.bitmap)
+            is EditProfileContract.Event.OnImageUpload -> uploadImageBitmap(event.data)
         }
     }
 
@@ -64,15 +64,7 @@ class EditProfileVM(
 
                     val baos = ByteArrayOutputStream()
 
-                    val originalBmp = currentState.avatar as Bitmap
-                    val middleX = originalBmp.width / 2
-                    val middleY = originalBmp.height / 2
-
-                    val bitmap = Bitmap.createBitmap(
-                        originalBmp,
-                        middleX - 75, middleY - 75,
-                        150, 150
-                    )
+                    val bitmap = currentState.avatar as Bitmap
 
                     bitmap.compress(Bitmap.CompressFormat.JPEG, 80, baos)
                     val data = baos.toByteArray()
@@ -122,8 +114,8 @@ class EditProfileVM(
         }
     }
 
-    private fun uploadImageBitmap(bitmap: Bitmap) {
-        setState { copy(avatar = bitmap) }
+    private fun uploadImageBitmap(imageData: Any) {
+        setState { copy(avatar = imageData) }
     }
 
 }
