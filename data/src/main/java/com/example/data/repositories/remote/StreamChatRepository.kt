@@ -15,12 +15,14 @@ class StreamChatRepository: IStreamChatRepository {
 
     override suspend fun getUserById(userId: String): Result<ChatUser?> {
         return try {
+            client.connectAnonymousUser().execute()
             val request = QueryUsersRequest(
                 filter = Filters.eq("id", userId),
                 offset = 0,
                 limit = 1
             )
             val result = client.queryUsers(request).execute()
+            client.disconnect()
             if(result.isSuccess) Result.Success(result.data().firstOrNull()?.toDomainModel()) else Result.Failure(Exception(result.error().message))
         } catch (e: Exception) {
             Result.Failure(e)

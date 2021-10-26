@@ -3,6 +3,7 @@ package com.example.chat.ui.sign_in
 import android.util.Log
 import androidx.lifecycle.viewModelScope
 import com.example.chat.ui.base.BaseViewModel
+import com.example.chat.ui.validation.InputValidationError
 import com.example.domain.common.Result
 import com.example.domain.use_cases.remote.SignInUserUseCase
 import com.example.domain.use_cases.remote.SignUpUserUseCase
@@ -69,7 +70,7 @@ class SignInVM(
     private fun validateUserName(userName: String) {
         setState { copy(userName = userName) }
 
-        val validator = SignInContract.InputValidationError.LessCharactersError(minCharacters)
+        val validator = InputValidationError.LessCharactersError(minCharacters)
 
         if(validator.validate(userName)) {
             setState { copy(userNameValidationError = null) }
@@ -82,9 +83,9 @@ class SignInVM(
         setState { copy(password = password) }
 
         val errors = listOf(
-            SignInContract.InputValidationError.LessCharactersError(minCharacters),
-            SignInContract.InputValidationError.NoNumbersError,
-            SignInContract.InputValidationError.SameCaseError
+            InputValidationError.LessCharactersError(minCharacters),
+            InputValidationError.NoNumbersError,
+            InputValidationError.SameCaseError
         ).filter { !it.validate(password) }
 
         if(errors.isNotEmpty()) {

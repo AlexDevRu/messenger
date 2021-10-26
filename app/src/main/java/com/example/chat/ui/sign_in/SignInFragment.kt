@@ -9,6 +9,7 @@ import androidx.navigation.fragment.findNavController
 import com.example.chat.R
 import com.example.chat.databinding.FragmentSignInBinding
 import com.example.chat.ui.base.BaseFragment
+import com.example.chat.ui.validation.InputValidationError
 import com.example.domain.exceptions.UserAlreadyExistsException
 import com.github.razir.progressbutton.attachTextChangeAnimator
 import com.github.razir.progressbutton.bindProgressButton
@@ -54,12 +55,12 @@ class SignInFragment: BaseFragment<FragmentSignInBinding>(FragmentSignInBinding:
         observeEffects()
     }
 
-    private fun getMessageByValidationError(error: SignInContract.InputValidationError) = when(error) {
-        is SignInContract.InputValidationError.LessCharactersError ->
+    private fun getMessageByValidationError(error: InputValidationError) = when(error) {
+        is InputValidationError.LessCharactersError ->
             getString(R.string.small_length_validation, getString(R.string.username), error.minCharacters)
-        is SignInContract.InputValidationError.NoNumbersError ->
+        is InputValidationError.NoNumbersError ->
             getString(R.string.password_no_numbers_validation)
-        is SignInContract.InputValidationError.SameCaseError ->
+        is InputValidationError.SameCaseError ->
             getString(R.string.password_same_case_validation)
     }
 
@@ -69,17 +70,17 @@ class SignInFragment: BaseFragment<FragmentSignInBinding>(FragmentSignInBinding:
 
                 binding.userNameInputLayout.isErrorEnabled = it.userNameValidationError != null
 
-                val userNameErrorMessages = it.userNameValidationError
-                ?.map { e -> getMessageByValidationError(e) }
-                ?.joinToString("\n")
+                val userNameErrorMessages = it.userNameValidationError?.joinToString("\n") { e ->
+                    getMessageByValidationError(e)
+                }
 
                 binding.userNameInputLayout.error = userNameErrorMessages
 
                 binding.passwordInputLayout.isErrorEnabled = it.passwordValidationError != null
 
-                val passwordErrorMessages = it.passwordValidationError
-                    ?.map { e -> getMessageByValidationError(e) }
-                    ?.joinToString("\n")
+                val passwordErrorMessages = it.passwordValidationError?.joinToString("\n") { e ->
+                    getMessageByValidationError(e)
+                }
 
                 binding.passwordInputLayout.error = passwordErrorMessages
 

@@ -12,6 +12,7 @@ import androidx.navigation.fragment.findNavController
 import androidx.navigation.fragment.navArgs
 import androidx.navigation.ui.setupWithNavController
 import com.example.chat.R
+import com.example.chat.databinding.DrawerHeaderBinding
 import com.example.chat.databinding.FragmentMainBinding
 import com.example.chat.ui.base.BaseFragment
 import io.getstream.chat.android.client.models.Channel
@@ -26,7 +27,7 @@ import io.getstream.chat.android.ui.channel.list.viewmodel.bindView
 import io.getstream.chat.android.ui.channel.list.viewmodel.factory.ChannelListViewModelFactory
 import kotlinx.coroutines.flow.collect
 import net.cr0wd.snackalert.SnackAlert
-import org.koin.androidx.viewmodel.ext.android.viewModel
+import org.koin.androidx.viewmodel.ext.android.sharedViewModel
 
 class MainFragment: BaseFragment<FragmentMainBinding>(FragmentMainBinding::inflate) {
 
@@ -34,7 +35,7 @@ class MainFragment: BaseFragment<FragmentMainBinding>(FragmentMainBinding::infla
         private const val TAG = "ChannelFragment"
     }
 
-    private val viewModel by viewModel<MainVM>()
+    private val viewModel by sharedViewModel<MainVM>()
 
     private val args by navArgs<MainFragmentArgs>()
 
@@ -63,6 +64,7 @@ class MainFragment: BaseFragment<FragmentMainBinding>(FragmentMainBinding::infla
         observeEffects()
 
         if(savedInstanceState == null) {
+            Log.w("asd", "savedInstanceState == null")
             viewModel.handleEvent(MainContract.Event.OnUserLoad(args.userId))
         }
     }
@@ -73,7 +75,6 @@ class MainFragment: BaseFragment<FragmentMainBinding>(FragmentMainBinding::infla
                 if(it.user != null) {
                     setupChannels(it.user.id)
                     setupDrawer(it.user)
-                    binding.channelsView.hideLoadingView()
                 }
 
                 if(it.loading) binding.channelsView.showLoadingView()
@@ -127,6 +128,8 @@ class MainFragment: BaseFragment<FragmentMainBinding>(FragmentMainBinding::infla
     }
 
     private fun setupDrawer(user: User) {
+        Log.w("asd", "hdfkjdhsfjh $user")
+
         binding.navigationView.setupWithNavController(findNavController())
         binding.navigationView.setNavigationItemSelectedListener { menuItem ->
             if (menuItem.itemId == R.id.logout_menu) {
@@ -134,13 +137,23 @@ class MainFragment: BaseFragment<FragmentMainBinding>(FragmentMainBinding::infla
             }
             false
         }
+
         val headerView = binding.navigationView.getHeaderView(0)
         val headerAvatar = headerView.findViewById<AvatarView>(R.id.avatarView)
-        headerAvatar.setUserData(user)
+
         val headerId = headerView.findViewById<TextView>(R.id.id_textView)
-        headerId.text = user.id
+
         val headerName = headerView.findViewById<TextView>(R.id.name_textView)
+
+        val headerDrawerBinding = DrawerHeaderBinding.bind(headerView)
+        headerDrawerBinding.editProfileButton.setOnClickListener {
+            val action = MainFragmentDirections.actionMainFragmentToEditProfileFragment()
+            findNavController().navigate(action)
+        }
+
+        headerId.text = user.id
         headerName.text = user.name
+        headerAvatar.setUserData(user)
     }
 
     private fun logout() {

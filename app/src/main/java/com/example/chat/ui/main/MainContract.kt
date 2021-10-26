@@ -8,6 +8,7 @@ import io.getstream.chat.android.client.models.User
 object MainContract {
     sealed class Event : UiEvent {
         data class OnUserLoad(val userId: String?): Event()
+        data class OnUserUpdated(val user: User?): Event()
         object OnLogout: Event()
     }
 

@@ -3,6 +3,7 @@ package com.example.chat.ui.sign_in
 import com.example.chat.ui.base.UiEffect
 import com.example.chat.ui.base.UiEvent
 import com.example.chat.ui.base.UiState
+import com.example.chat.ui.validation.InputValidationError
 
 object SignInContract {
     sealed class Event : UiEvent {
@@ -26,22 +27,6 @@ object SignInContract {
     sealed class Effect : UiEffect {
         object SignInSuccess: Effect()
         data class SignInFailure(val throwable: Throwable?): Effect()
-    }
-
-    sealed class InputValidationError {
-        data class LessCharactersError(val minCharacters: Int): InputValidationError() {
-            override fun validate(input: String) = input.isNotEmpty() && input.length >= minCharacters
-        }
-
-        object NoNumbersError : InputValidationError() {
-            override fun validate(input: String) = Regex("\\d").containsMatchIn(input)
-        }
-
-        object SameCaseError : InputValidationError() {
-            override fun validate(input: String) = Regex("[a-z][A-Z]|[A-Z][a-z]").containsMatchIn(input)
-        }
-
-        abstract fun validate(input: String): Boolean
     }
 
     enum class SIGN_MODE {

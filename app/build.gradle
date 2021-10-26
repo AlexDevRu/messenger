@@ -66,7 +66,18 @@ dependencies {
     implementation "com.google.android.gms:play-services-auth:$play_services_auth_version"
     implementation 'com.google.firebase:firebase-auth-ktx'
 
+    // Glide
+    implementation "com.github.bumptech.glide:glide:$glide_version"
+    annotationProcessor "com.github.bumptech.glide:compiler:$glide_version"
+    implementation 'com.github.corouteam:GlideToVectorYou:v2.0.0'
 
+    implementation 'com.google.firebase:firebase-storage:20.0.0'
+
+    implementation 'org.jetbrains.kotlinx:kotlinx-coroutines-play-services:1.1.1'
+    implementation 'org.jetbrains.kotlinx:kotlinx-coroutines-android:1.5.2'
+
+
+    implementation "com.github.CanHub:Android-Image-Cropper:3.3.5"
 
 
     implementation 'com.github.razir.progressbutton:progressbutton:2.1.0'

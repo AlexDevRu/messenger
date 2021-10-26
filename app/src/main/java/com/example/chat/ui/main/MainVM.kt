@@ -1,5 +1,6 @@
 package com.example.chat.ui.main
 
+import android.util.Log
 import androidx.lifecycle.viewModelScope
 import com.example.chat.ui.base.BaseViewModel
 import com.example.domain.common.Result
@@ -21,11 +22,15 @@ class MainVM(
             return
         }
 
+        fetchUser(userId)
+    }
+
+    private fun fetchUser(userId: String) {
         viewModelScope.launch(Dispatchers.IO) {
             setState { copy(loading = true) }
             val result = signInUserUseCase(userId)
             when(result) {
-                is Result.Success -> setState { copy(user = client.getCurrentUser()) }
+                is Result.Success -> setState { copy(user = ChatClient.instance().getCurrentUser()) }
                 is Result.Failure -> setEffect { MainContract.Effect.ShowErrorSnackbar(result.throwable.message) }
             }
             setState { copy(loading = false) }
@@ -39,6 +44,7 @@ class MainVM(
     }
 
     override fun createInitialState(): MainContract.State {
+        Log.d("asd", "CREATE INITIAL STATE")
         return MainContract.State(
             user = ChatClient.instance().getCurrentUser(),
             loading = false
@@ -48,6 +54,7 @@ class MainVM(
     override fun handleEvent(event: MainContract.Event) {
         when(event) {
             is MainContract.Event.OnUserLoad -> getUser(event.userId)
+            is MainContract.Event.OnUserUpdated -> setState { copy(user = event.user) }
             MainContract.Event.OnLogout -> logout()
         }
     }
