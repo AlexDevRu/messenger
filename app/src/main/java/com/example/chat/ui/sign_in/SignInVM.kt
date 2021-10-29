@@ -13,31 +13,32 @@ import kotlinx.coroutines.launch
 class SignInVM(
     private val signInUserUseCase: SignInUserUseCase,
     private val signUpUserUseCase: SignUpUserUseCase
-) : BaseViewModel<SignInContract.Event, SignInContract.State, SignInContract.Effect>() {
+) : BaseViewModel<AuthContract.Event, AuthContract.State, AuthContract.Effect>() {
 
     companion object {
         private const val TAG = "SignInVM"
         private const val minCharacters = 4
+        const val maxCharachters = 20
     }
 
-    override fun createInitialState(): SignInContract.State {
-        return SignInContract.State(
+    override fun createInitialState(): AuthContract.State {
+        return AuthContract.State(
             userName = null,
-            userNameValidationError = null,
+            userNameValidationError = emptyList(),
             password = null,
-            passwordValidationError = null,
+            passwordValidationError = emptyList(),
             saveSignInStatus = true,
             loading = false
         )
     }
 
-    override fun handleEvent(event: SignInContract.Event) {
+    override fun handleEvent(event: AuthContract.Event) {
         when (event) {
-            SignInContract.Event.OnSignInClicked -> authentificateUser()
-            is SignInContract.Event.OnValidateUserName -> validateUserName(event.userName)
-            is SignInContract.Event.OnValidatePassword -> validatePassword(event.password)
-            is SignInContract.Event.OnSignInStatusChanged -> setState { copy(saveSignInStatus = event.status) }
-            SignInContract.Event.OnModeChanged -> setState { copy(mode = currentState.mode.toggle()) }
+            AuthContract.Event.OnSignInClicked -> authentificateUser()
+            is AuthContract.Event.OnValidateUserName -> validateUserName(event.userName)
+            is AuthContract.Event.OnValidatePassword -> validatePassword(event.password)
+            is AuthContract.Event.OnSignInStatusChanged -> setState { copy(saveSignInStatus = event.status) }
+            AuthContract.Event.OnModeChanged -> setState { copy(mode = currentState.mode.toggle()) }
         }
     }
 
@@ -52,7 +53,7 @@ class SignInVM(
         viewModelScope.launch(Dispatchers.IO) {
             setState { copy(loading = true) }
 
-            val result = if(currentState.mode == SignInContract.SIGN_MODE.SIGN_IN) {
+            val result = if(currentState.mode == AuthContract.SIGN_MODE.SIGN_IN) {
                 signInUserUseCase(userId, currentState.password!!, currentState.saveSignInStatus)
             } else {
                 signUpUserUseCase(userId, currentState.password!!, currentState.saveSignInStatus)
@@ -61,8 +62,8 @@ class SignInVM(
             setState { copy(loading = false) }
 
             when(result) {
-                is Result.Success -> setEffect { SignInContract.Effect.SignInSuccess }
-                is Result.Failure -> setEffect { SignInContract.Effect.SignInFailure(result.throwable) }
+                is Result.Success -> setEffect { AuthContract.Effect.SignInSuccess }
+                is Result.Failure -> setEffect { AuthContract.Effect.SignInFailure(result.throwable) }
             }
         }
     }

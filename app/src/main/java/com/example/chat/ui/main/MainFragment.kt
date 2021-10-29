@@ -12,19 +12,13 @@ import androidx.navigation.fragment.findNavController
 import androidx.navigation.fragment.navArgs
 import androidx.navigation.ui.setupWithNavController
 import com.example.chat.R
-import com.example.chat.databinding.DrawerHeaderBinding
 import com.example.chat.databinding.FragmentMainBinding
 import com.example.chat.ui.base.BaseFragment
 import io.getstream.chat.android.client.models.Channel
 import io.getstream.chat.android.client.models.Filters
 import io.getstream.chat.android.client.models.User
 import io.getstream.chat.android.livedata.ChatDomain
-import io.getstream.chat.android.ui.avatar.AvatarView
-import io.getstream.chat.android.ui.channel.list.header.viewmodel.ChannelListHeaderViewModel
-import io.getstream.chat.android.ui.channel.list.header.viewmodel.bindView
-import io.getstream.chat.android.ui.channel.list.viewmodel.ChannelListViewModel
-import io.getstream.chat.android.ui.channel.list.viewmodel.bindView
-import io.getstream.chat.android.ui.channel.list.viewmodel.factory.ChannelListViewModelFactory
+
 import kotlinx.coroutines.flow.collect
 import net.cr0wd.snackalert.SnackAlert
 import org.koin.androidx.viewmodel.ext.android.sharedViewModel
@@ -42,7 +36,7 @@ class MainFragment: BaseFragment<FragmentMainBinding>(FragmentMainBinding::infla
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
 
-        binding.channelsView.setChannelDeleteClickListener { channel ->
+        /*binding.channelsView.setChannelDeleteClickListener { channel ->
             deleteChannel(channel)
         }
 
@@ -58,7 +52,7 @@ class MainFragment: BaseFragment<FragmentMainBinding>(FragmentMainBinding::infla
         binding.channelsView.setChannelItemClickListener { channel ->
             val action = MainFragmentDirections.actionMainFragmentToChatFragment(channel.cid)
             findNavController().navigate(action)
-        }
+        }*/
 
         observeState()
         observeEffects()
@@ -77,8 +71,8 @@ class MainFragment: BaseFragment<FragmentMainBinding>(FragmentMainBinding::infla
                     setupDrawer(it.user)
                 }
 
-                if(it.loading) binding.channelsView.showLoadingView()
-                else binding.channelsView.hideLoadingView()
+                /*if(it.loading) binding.channelsView.showLoadingView()
+                else binding.channelsView.hideLoadingView()*/
             }
         }
     }
@@ -106,7 +100,7 @@ class MainFragment: BaseFragment<FragmentMainBinding>(FragmentMainBinding::infla
             Filters.eq("type", "messaging"),
             Filters.`in`("members", listOf(userId))
         )
-        val viewModelFactory = ChannelListViewModelFactory(
+        /*val viewModelFactory = ChannelListViewModelFactory(
             filters,
             ChannelListViewModel.DEFAULT_SORT
         )
@@ -114,7 +108,7 @@ class MainFragment: BaseFragment<FragmentMainBinding>(FragmentMainBinding::infla
         val listHeaderViewModel: ChannelListHeaderViewModel by viewModels()
 
         listHeaderViewModel.bindView(binding.channelListHeaderView, viewLifecycleOwner)
-        listViewModel.bindView(binding.channelsView, viewLifecycleOwner)
+        listViewModel.bindView(binding.channelsView, viewLifecycleOwner)*/
     }
 
     private fun deleteChannel(channel: Channel) {
@@ -138,7 +132,7 @@ class MainFragment: BaseFragment<FragmentMainBinding>(FragmentMainBinding::infla
             false
         }
 
-        val headerView = binding.navigationView.getHeaderView(0)
+        /*val headerView = binding.navigationView.getHeaderView(0)
         val headerAvatar = headerView.findViewById<AvatarView>(R.id.avatarView)
 
         val headerId = headerView.findViewById<TextView>(R.id.id_textView)
@@ -153,7 +147,7 @@ class MainFragment: BaseFragment<FragmentMainBinding>(FragmentMainBinding::infla
 
         headerId.text = user.id
         headerName.text = user.name
-        headerAvatar.setUserData(user)
+        headerAvatar.setUserData(user)*/
     }
 
     private fun logout() {

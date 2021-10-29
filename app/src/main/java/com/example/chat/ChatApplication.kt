@@ -6,7 +6,7 @@ import com.example.chat.di.useCaseModule
 import com.example.chat.di.viewModelModule
 import io.getstream.chat.android.client.ChatClient
 import io.getstream.chat.android.client.logger.ChatLogLevel
-import io.getstream.chat.android.livedata.ChatDomain
+import io.getstream.chat.android.offline.ChatDomain
 import org.koin.android.ext.koin.androidContext
 import org.koin.core.context.startKoin
 

@@ -10,11 +10,7 @@ import com.example.chat.databinding.FragmentChatBinding
 import com.example.chat.ui.base.BaseFragment
 import com.getstream.sdk.chat.viewmodel.MessageInputViewModel
 import com.getstream.sdk.chat.viewmodel.messages.MessageListViewModel
-import io.getstream.chat.android.ui.message.input.viewmodel.bindView
-import io.getstream.chat.android.ui.message.list.header.viewmodel.MessageListHeaderViewModel
-import io.getstream.chat.android.ui.message.list.header.viewmodel.bindView
-import io.getstream.chat.android.ui.message.list.viewmodel.bindView
-import io.getstream.chat.android.ui.message.list.viewmodel.factory.MessageListViewModelFactory
+
 
 class ChatFragment : BaseFragment<FragmentChatBinding>(FragmentChatBinding::inflate) {
 
@@ -29,9 +25,9 @@ class ChatFragment : BaseFragment<FragmentChatBinding>(FragmentChatBinding::infl
 
         setupMessages()
 
-        binding.messagesHeaderView.setBackButtonClickListener {
+        /*binding.messagesHeaderView.setBackButtonClickListener {
             requireActivity().onBackPressed()
-        }
+        }*/
 
         requireActivity().onBackPressedDispatcher.addCallback(viewLifecycleOwner, object: OnBackPressedCallback(true) {
             override fun handleOnBackPressed() {
@@ -45,20 +41,20 @@ class ChatFragment : BaseFragment<FragmentChatBinding>(FragmentChatBinding::infl
     }
 
     private fun setupMessages() {
-        val factory = MessageListViewModelFactory(cid = args.channelId)
+        /*val factory = MessageListViewModelFactory(cid = args.channelId)
         val messageListViewModel: MessageListViewModel by viewModels { factory }
 
         val messageListHeaderViewModel: MessageListHeaderViewModel by viewModels { factory }
 
         val messageInputViewModel: MessageInputViewModel by viewModels { factory }
 
-        messageListHeaderViewModel.bindView(binding.messagesHeaderView, viewLifecycleOwner)
+        messageListHeaderViewModel.bindView(binding.messagesHeaderView, viewLifecycleOwner)*/
 
         /*val disposable: Disposable = channelClient.subscribeFor<NewMessageEvent> { newMessageEvent ->
             val message = newMessageEvent.message
         }*/
         // Let both message list header and message input know when we open a thread
-        messageListViewModel.mode.observe(this) { mode ->
+        /*messageListViewModel.mode.observe(this) { mode ->
             when (mode) {
                 is MessageListViewModel.Mode.Thread -> {
                     messageListHeaderViewModel.setActiveThread(mode.parentMessage)
@@ -69,13 +65,13 @@ class ChatFragment : BaseFragment<FragmentChatBinding>(FragmentChatBinding::infl
                     messageInputViewModel.resetThread()
                 }
             }
-        }
+        }*/
 
         // Let the message input know when we are editing a message
-        binding.messageList.setMessageEditHandler(messageInputViewModel::postMessageToEdit)
+        //binding.messageList.setMessageEditHandler(messageInputViewModel::postMessageToEdit)
 
         // Handle navigate up state
-        messageListViewModel.state.observe(this) { state ->
+        /*messageListViewModel.state.observe(this) { state ->
             if (state is MessageListViewModel.State.NavigateUp) {
                 // Handle navigate up
             }
@@ -89,7 +85,7 @@ class ChatFragment : BaseFragment<FragmentChatBinding>(FragmentChatBinding::infl
 
 
         messageListViewModel.bindView(binding.messageList, viewLifecycleOwner)
-        messageInputViewModel.bindView(binding.messageInputView, viewLifecycleOwner)
+        messageInputViewModel.bindView(binding.messageInputView, viewLifecycleOwner)*/
     }
 
     private fun deleteChannelIfEmpty() {

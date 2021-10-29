@@ -5,7 +5,7 @@ import com.example.chat.ui.base.UiEvent
 import com.example.chat.ui.base.UiState
 import com.example.chat.ui.validation.InputValidationError
 
-object SignInContract {
+object AuthContract {
     sealed class Event : UiEvent {
         object OnSignInClicked: Event()
         data class OnValidateUserName(val userName: String): Event()

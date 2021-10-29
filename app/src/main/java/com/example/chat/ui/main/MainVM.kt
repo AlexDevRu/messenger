@@ -40,7 +40,7 @@ class MainVM(
     private fun logout() {
         client.disconnect()
         saveUserUseCase(null)
-        setEffect { MainContract.Effect.Logout }
+        //setEffect { MainContract.Effect.Logout }
     }
 
     override fun createInitialState(): MainContract.State {

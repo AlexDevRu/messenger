@@ -26,12 +26,12 @@ class UsersAdapter(private val onClick: (User) -> Unit): ListAdapter<User, Users
     inner class MyViewHolder(val binding: ViewholderUserBinding) : RecyclerView.ViewHolder(binding.root) {
 
         fun bind(user: User) {
-            binding.avatarImageView.setUserData(user)
+            /*binding.avatarImageView.setUserData(user)
             binding.usernameTextView.text = user.id
             binding.lastActiveTextView.text = convertDate(user.lastActive!!.time)
             binding.rootLayout.setOnClickListener {
                 onClick(user)
-            }
+            }*/
         }
 
         private fun convertDate(milliseconds: Long): String {

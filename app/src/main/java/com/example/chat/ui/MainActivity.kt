@@ -6,8 +6,11 @@ import androidx.navigation.fragment.NavHostFragment
 import com.example.chat.R
 import com.example.domain.use_cases.local.preferences.GetUserUseCase
 import org.koin.android.ext.android.inject
+import androidx.activity.ComponentActivity
+import androidx.activity.compose.setContent
+import com.example.compose.ui.theme.ComposeTheme
 
-class MainActivity : AppCompatActivity() {
+/*class MainActivity : AppCompatActivity() {
 
     private val getUserUseCase by inject<GetUserUseCase>()
 
@@ -27,6 +30,17 @@ class MainActivity : AppCompatActivity() {
                 navController.navigate(R.id.mainFragment, Bundle().apply {
                     putString("userId", userId)
                 })
+            }
+        }
+    }
+}*/
+
+class MainActivity: AppCompatActivity() {
+    override fun onCreate(savedInstanceState: Bundle?) {
+        super.onCreate(savedInstanceState)
+        setContent {
+            ComposeTheme {
+                Root()
             }
         }
     }

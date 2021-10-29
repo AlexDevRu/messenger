@@ -31,24 +31,24 @@ class SignInFragment: BaseFragment<FragmentSignInBinding>(FragmentSignInBinding:
 
         binding.userNameEditText.doAfterTextChanged {
             if(it != null)
-                viewModel.setEvent(SignInContract.Event.OnValidateUserName(it.toString()))
+                viewModel.setEvent(AuthContract.Event.OnValidateUserName(it.toString()))
         }
 
         binding.passwordEditText.doAfterTextChanged {
             if(it != null)
-                viewModel.setEvent(SignInContract.Event.OnValidatePassword(it.toString()))
+                viewModel.setEvent(AuthContract.Event.OnValidatePassword(it.toString()))
         }
 
         binding.rememberMeCheckbox.setOnCheckedChangeListener { _, b ->
-            viewModel.handleEvent(SignInContract.Event.OnSignInStatusChanged(b))
+            viewModel.handleEvent(AuthContract.Event.OnSignInStatusChanged(b))
         }
 
         binding.signButton.setOnClickListener {
-            viewModel.setEvent(SignInContract.Event.OnSignInClicked)
+            viewModel.setEvent(AuthContract.Event.OnSignInClicked)
         }
 
         binding.toggleModeButton.setOnClickListener {
-            viewModel.setEvent(SignInContract.Event.OnModeChanged)
+            viewModel.setEvent(AuthContract.Event.OnModeChanged)
         }
 
         observeState()
@@ -87,12 +87,12 @@ class SignInFragment: BaseFragment<FragmentSignInBinding>(FragmentSignInBinding:
                 binding.rememberMeCheckbox.isChecked = it.saveSignInStatus
 
                 val signButtonText = when(it.mode) {
-                    SignInContract.SIGN_MODE.SIGN_IN -> R.string.sign_in
-                    SignInContract.SIGN_MODE.SIGN_UP -> R.string.sign_up
+                    AuthContract.SIGN_MODE.SIGN_IN -> R.string.sign_in
+                    AuthContract.SIGN_MODE.SIGN_UP -> R.string.sign_up
                 }
                 val toggleButtonText = when(it.mode) {
-                    SignInContract.SIGN_MODE.SIGN_IN -> R.string.sign_in_button_text
-                    SignInContract.SIGN_MODE.SIGN_UP -> R.string.sign_up_button_text
+                    AuthContract.SIGN_MODE.SIGN_IN -> R.string.sign_in_button_text
+                    AuthContract.SIGN_MODE.SIGN_UP -> R.string.sign_up_button_text
                 }
 
                 binding.signButton.setText(signButtonText)
@@ -123,11 +123,11 @@ class SignInFragment: BaseFragment<FragmentSignInBinding>(FragmentSignInBinding:
         lifecycleScope.launchWhenStarted {
             viewModel.effect.collect {
                 when (it) {
-                    SignInContract.Effect.SignInSuccess -> {
+                    AuthContract.Effect.SignInSuccess -> {
                         val action = SignInFragmentDirections.actionSignInFragmentToMainFragment()
                         findNavController().navigate(action)
                     }
-                    is SignInContract.Effect.SignInFailure -> {
+                    is AuthContract.Effect.SignInFailure -> {
                         when(it.throwable) {
                             is UserAlreadyExistsException -> SnackAlert.error(binding.root, R.string.user_already_exists_exception)
                             else -> SnackAlert.error(binding.root, it.throwable?.message.orEmpty())
