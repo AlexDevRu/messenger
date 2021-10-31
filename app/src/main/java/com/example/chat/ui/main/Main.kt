@@ -1,8 +1,6 @@
 package com.example.chat.ui.main
 
 import android.util.Log
-import androidx.annotation.DrawableRes
-import androidx.annotation.StringRes
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.*
@@ -23,7 +21,6 @@ import androidx.constraintlayout.compose.ConstraintLayout
 import androidx.constraintlayout.compose.ConstraintSet
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
-import androidx.navigation.NavHostController
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.dialog
@@ -31,11 +28,15 @@ import androidx.navigation.compose.rememberNavController
 import com.example.chat.R
 import com.example.chat.ui.chat.ChannelScreen
 import com.example.chat.ui.edit_profile.EditProfileScreen
+import com.example.chat.ui.models.DrawerMenuItem
+import com.example.chat.ui.models.Screen
+import com.example.chat.ui.settings.SettingsScreen
 import com.example.chat.ui.users.UsersScreen
 import io.getstream.chat.android.client.ChatClient
 import io.getstream.chat.android.client.api.models.QuerySort
 import io.getstream.chat.android.client.models.Filters
 import io.getstream.chat.android.client.models.User
+import io.getstream.chat.android.compose.state.channel.list.ChannelsState
 import io.getstream.chat.android.compose.ui.channel.header.ChannelListHeader
 import io.getstream.chat.android.compose.ui.channel.list.ChannelList
 import io.getstream.chat.android.compose.ui.theme.ChatTheme
@@ -50,6 +51,11 @@ private fun Preview() {
     Drawer(onDestinationClick = {}, activeRoute = "")
 }
 
+private val drawerScreens = listOf(
+    DrawerMenuItem.Channels,
+    DrawerMenuItem.Settings,
+    DrawerMenuItem.Logout
+)
 
 @Composable
 fun Drawer(
@@ -79,7 +85,6 @@ fun Drawer(
             top.linkTo(userAvatarRef.bottom)
         }
     }
-
 
     ConstraintLayout(
         constraintSet,
@@ -176,34 +181,9 @@ private fun NavMenuItem(
     }
 }
 
-sealed class Screen(val route: String) {
-    object Auth : Screen("Auth")
-    object Main : Screen("Main")
-    object Channel : Screen("Channel")
-    object EditProfile : Screen("EditProfile")
-    object Users : Screen("Users")
-}
-
-sealed class DrawerMenuItem(route: String, @StringRes val displayTitle: Int, @DrawableRes val iconRes: Int): Screen(route) {
-    object Channels : DrawerMenuItem("Channels", R.string.channels, R.drawable.ic_channels)
-    object Settings : DrawerMenuItem("Settings", R.string.settings, R.drawable.ic_baseline_settings_24)
-    object Logout : DrawerMenuItem("Logout", R.string.logout, R.drawable.logout)
-}
-
-private val drawerScreens = listOf(
-    DrawerMenuItem.Channels,
-    DrawerMenuItem.Settings,
-    DrawerMenuItem.Logout
-)
-
-
-
-
 @Composable
 fun MainScreen(
     navigateToAuth: () -> Unit,
-    rootController: NavController,
-    userId: String? = null,
     viewModel: MainVM = getViewModel()
 ) {
 
@@ -215,8 +195,6 @@ fun MainScreen(
 
     val mainState by viewModel.uiState.collectAsState()
     val effect by viewModel.effect.collectAsState(null)
-
-    viewModel.setEvent(MainContract.Event.OnUserLoad(userId))
 
     val scaffoldState = rememberScaffoldState()
     val snackbarCoroutineScope = rememberCoroutineScope()
@@ -235,21 +213,23 @@ fun MainScreen(
             scope.launch { drawerState.close() }
         }
 
-        when(effect) {
-            MainContract.Effect.Logout -> {
-                navigateToAuth()
-            }
-            is MainContract.Effect.ShowErrorSnackbar -> {
-                Log.e("asd", (effect as MainContract.Effect.ShowErrorSnackbar).message.orEmpty())
-                snackbarCoroutineScope.launch {
-                    scaffoldState.snackbarHostState
-                        .showSnackbar(
-                            (effect as MainContract.Effect.ShowErrorSnackbar)
-                                .message.orEmpty()
-                        )
+        LaunchedEffect(key1 = effect, block = {
+            when(effect) {
+                MainContract.Effect.Logout -> {
+                    navigateToAuth()
+                }
+                is MainContract.Effect.ShowErrorSnackbar -> {
+                    Log.e("asd", (effect as MainContract.Effect.ShowErrorSnackbar).message.orEmpty())
+                    snackbarCoroutineScope.launch {
+                        scaffoldState.snackbarHostState
+                            .showSnackbar(
+                                (effect as MainContract.Effect.ShowErrorSnackbar)
+                                    .message.orEmpty()
+                            )
+                    }
                 }
             }
-        }
+        })
 
         ModalDrawer(
             drawerState = drawerState,
@@ -285,12 +265,20 @@ fun MainScreen(
                     SettingsScreen()
                     activeRoute = DrawerMenuItem.Settings.route
                 }
-
+                composable(Screen.Channel.route) {
+                    val channelId = it.arguments?.getString("channelId")
+                    ChannelScreen(channelId!!, onBackPressed = { navController.navigateUp() })
+                }
                 composable(Screen.Users.route) {
                     UsersScreen(navController)
                 }
                 composable(Screen.EditProfile.route) {
-                    EditProfileScreen()
+                    EditProfileScreen(
+                        onCancel = { navController.navigateUp() },
+                        onSuccess = {
+                            viewModel.setEvent(MainContract.Event.OnUserUpdated(it))
+                        }
+                    )
                 }
                 dialog(DrawerMenuItem.Logout.route) {
                     Surface(color = MaterialTheme.colors.background) {
@@ -306,7 +294,6 @@ fun MainScreen(
                                 OutlinedButton(
                                     onClick = {
                                         viewModel.setEvent(MainContract.Event.OnLogout)
-                                        navigateToAuth()
                                     }
                                 ) {
                                     Text(stringResource(id = R.string.logout))
@@ -363,12 +350,12 @@ fun ChannelsScreen(
                     }
                 }
             )
+
             if(!loading && currentUser != null) {
                 ChannelList(
                     modifier = Modifier.fillMaxSize(),
                     viewModel = viewModel(
-                        factory =
-                        ChannelViewModelFactory(
+                        factory = ChannelViewModelFactory(
                             ChatClient.instance(),
                             ChatDomain.instance(),
                             QuerySort.desc("last_updated"),
@@ -382,16 +369,11 @@ fun ChannelsScreen(
                         navController.navigate("${Screen.Channel.route}/${it.cid}")
                     },
                 )
+            } else {
+                Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
+                    CircularProgressIndicator(modifier = Modifier.size(48.dp), color = Color.Blue)
+                }
             }
         }
     }
 }
-
-//@Preview
-@Composable
-fun SettingsScreen() {
-    Text(text = "Settings")
-}
-
-
-

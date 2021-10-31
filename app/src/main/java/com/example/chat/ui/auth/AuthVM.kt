@@ -1,4 +1,4 @@
-package com.example.chat.ui.sign_in
+package com.example.chat.ui.auth
 
 import android.util.Log
 import androidx.lifecycle.viewModelScope
@@ -10,7 +10,7 @@ import com.example.domain.use_cases.remote.SignUpUserUseCase
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 
-class SignInVM(
+class AuthVM(
     private val signInUserUseCase: SignInUserUseCase,
     private val signUpUserUseCase: SignUpUserUseCase
 ) : BaseViewModel<AuthContract.Event, AuthContract.State, AuthContract.Effect>() {
@@ -51,7 +51,6 @@ class SignInVM(
         val userId = currentState.userName!!.trim()
 
         viewModelScope.launch(Dispatchers.IO) {
-            setState { copy(loading = true) }
 
             val result = if(currentState.mode == AuthContract.SIGN_MODE.SIGN_IN) {
                 signInUserUseCase(userId, currentState.password!!, currentState.saveSignInStatus)
@@ -59,12 +58,12 @@ class SignInVM(
                 signUpUserUseCase(userId, currentState.password!!, currentState.saveSignInStatus)
             }
 
-            setState { copy(loading = false) }
-
             when(result) {
                 is Result.Success -> setEffect { AuthContract.Effect.SignInSuccess }
                 is Result.Failure -> setEffect { AuthContract.Effect.SignInFailure(result.throwable) }
             }
+
+            setState { copy(loading = false) }
         }
     }
 

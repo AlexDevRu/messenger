@@ -100,6 +100,7 @@ dependencies {
     implementation "androidx.constraintlayout:constraintlayout-compose:1.0.0-rc01"
     debugImplementation "androidx.compose.ui:ui-tooling:$compose_version"
     implementation "androidx.navigation:navigation-compose:2.4.0-alpha10"
+    implementation 'androidx.compose.runtime:runtime-livedata:1.1.0-beta01'
 
 
     
@@ -110,6 +111,8 @@ dependencies {
 
     // Koin for Jetpack Compose
     implementation "io.insert-koin:koin-androidx-compose:$koin_version"
+
+    implementation("io.coil-kt:coil-compose:1.4.0")
 
 
     implementation 'com.github.razir.progressbutton:progressbutton:2.1.0'

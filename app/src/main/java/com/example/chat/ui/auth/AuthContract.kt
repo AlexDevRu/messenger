@@ -1,4 +1,4 @@
-package com.example.chat.ui.sign_in
+package com.example.chat.ui.auth
 
 import com.example.chat.ui.base.UiEffect
 import com.example.chat.ui.base.UiEvent

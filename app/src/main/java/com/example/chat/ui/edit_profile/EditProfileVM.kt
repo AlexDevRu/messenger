@@ -1,6 +1,10 @@
 package com.example.chat.ui.edit_profile
 
+import android.app.Application
+import android.content.Context
 import android.graphics.Bitmap
+import android.graphics.BitmapFactory
+import android.net.Uri
 import android.util.Log
 import androidx.lifecycle.viewModelScope
 import com.example.chat.ui.base.BaseViewModel
@@ -14,7 +18,7 @@ import java.io.ByteArrayOutputStream
 
 
 class EditProfileVM(
-
+    private val context: Application
 ): BaseViewModel<EditProfileContract.Event, EditProfileContract.State, EditProfileContract.Effect>() {
 
     companion object {
@@ -58,9 +62,29 @@ class EditProfileVM(
                         setFields["image"] = currentState.avatar as String
                     }
                 }
-                is Bitmap -> {
+                is Uri -> {
+
                     val rootRef = FirebaseStorage.getInstance().reference
                     val feedbackRef = rootRef.child("user_avatars")
+
+                    val bitmap = BitmapFactory.decodeStream(context.contentResolver.openInputStream(
+                        currentState.avatar as Uri
+                    ))
+
+                    val baos = ByteArrayOutputStream()
+                    bitmap.compress(Bitmap.CompressFormat.JPEG, 80, baos)
+                    val data = baos.toByteArray()
+
+                    try {
+                        val result = feedbackRef.child(currentUser.id).putBytes(data).await()
+                        val uriResult = result.metadata?.reference?.downloadUrl?.await()
+                        if(uriResult != null) {
+                            setFields["image"] = uriResult.toString()
+                        }
+                    } catch (e: Exception) {
+                        Log.e(TAG, "avatar uri exception ${e.message}")
+                    }
+                    /*
 
                     val baos = ByteArrayOutputStream()
 
@@ -77,7 +101,7 @@ class EditProfileVM(
                         }
                     } catch (e: Exception) {
                         Log.e(TAG, "avatar uri exception ${e.message}")
-                    }
+                    }*/
                 }
             }
 

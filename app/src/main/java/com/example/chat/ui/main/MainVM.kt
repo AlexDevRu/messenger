@@ -4,6 +4,7 @@ import android.util.Log
 import androidx.lifecycle.viewModelScope
 import com.example.chat.ui.base.BaseViewModel
 import com.example.domain.common.Result
+import com.example.domain.use_cases.local.preferences.GetUserUseCase
 import com.example.domain.use_cases.local.preferences.SaveUserUseCase
 import com.example.domain.use_cases.remote.SignInUserUseCase
 import io.getstream.chat.android.client.ChatClient
@@ -12,17 +13,23 @@ import kotlinx.coroutines.launch
 
 class MainVM(
     private val signInUserUseCase: SignInUserUseCase,
-    private val saveUserUseCase: SaveUserUseCase
+    private val saveUserUseCase: SaveUserUseCase,
+    private val getUserUseCase: GetUserUseCase
 ): BaseViewModel<MainContract.Event, MainContract.State, MainContract.Effect>() {
 
     private val client = ChatClient.instance()
 
-    private fun getUser(userId: String?) {
-        if(userId == null || client.getCurrentUser() != null) {
-            return
-        }
+    init {
+        setEvent(MainContract.Event.OnUserLoad(null))
+    }
 
-        fetchUser(userId)
+    private fun getUser() {
+        if(client.getCurrentUser() == null) {
+            val userId = getUserUseCase()
+            if(userId != null) fetchUser(userId)
+        } else {
+            setState { copy(user = client.getCurrentUser()) }
+        }
     }
 
     private fun fetchUser(userId: String) {
@@ -40,20 +47,20 @@ class MainVM(
     private fun logout() {
         client.disconnect()
         saveUserUseCase(null)
-        //setEffect { MainContract.Effect.Logout }
+        setEffect { MainContract.Effect.Logout }
     }
 
     override fun createInitialState(): MainContract.State {
         Log.d("asd", "CREATE INITIAL STATE")
         return MainContract.State(
-            user = ChatClient.instance().getCurrentUser(),
+            user = null,
             loading = false
         )
     }
 
     override fun handleEvent(event: MainContract.Event) {
         when(event) {
-            is MainContract.Event.OnUserLoad -> getUser(event.userId)
+            is MainContract.Event.OnUserLoad -> getUser()
             is MainContract.Event.OnUserUpdated -> setState { copy(user = event.user) }
             MainContract.Event.OnLogout -> logout()
         }

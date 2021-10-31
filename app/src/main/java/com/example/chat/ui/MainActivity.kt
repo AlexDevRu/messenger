@@ -1,6 +1,7 @@
 package com.example.chat.ui
 
 import android.os.Bundle
+import android.view.WindowManager
 import androidx.appcompat.app.AppCompatActivity
 import androidx.navigation.fragment.NavHostFragment
 import com.example.chat.R
@@ -8,7 +9,7 @@ import com.example.domain.use_cases.local.preferences.GetUserUseCase
 import org.koin.android.ext.android.inject
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
-import com.example.compose.ui.theme.ComposeTheme
+import com.example.chat.ui.theme.ComposeTheme
 
 /*class MainActivity : AppCompatActivity() {
 

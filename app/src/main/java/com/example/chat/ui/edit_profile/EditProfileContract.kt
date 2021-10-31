@@ -24,7 +24,7 @@ object EditProfileContract {
     ): UiState
 
     sealed class Effect: UiEffect {
-        data class UserUpdatedSuccessfully(val user: User?): Effect()
+        data class UserUpdatedSuccessfully(val user: User): Effect()
         data class UserUpdateFailure(val message: String?): Effect()
     }
 }
