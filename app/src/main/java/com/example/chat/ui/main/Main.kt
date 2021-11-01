@@ -1,6 +1,7 @@
 package com.example.chat.ui.main
 
 import android.util.Log
+import androidx.annotation.StringRes
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.*
@@ -26,6 +27,7 @@ import androidx.navigation.compose.composable
 import androidx.navigation.compose.dialog
 import androidx.navigation.compose.rememberNavController
 import com.example.chat.R
+import com.example.chat.ui.base.composables.CustomAlertDialog
 import com.example.chat.ui.chat.ChannelScreen
 import com.example.chat.ui.edit_profile.EditProfileScreen
 import com.example.chat.ui.models.DrawerMenuItem
@@ -34,6 +36,7 @@ import com.example.chat.ui.settings.SettingsScreen
 import com.example.chat.ui.users.UsersScreen
 import io.getstream.chat.android.client.ChatClient
 import io.getstream.chat.android.client.api.models.QuerySort
+import io.getstream.chat.android.client.models.Channel
 import io.getstream.chat.android.client.models.Filters
 import io.getstream.chat.android.client.models.User
 import io.getstream.chat.android.compose.state.channel.list.ChannelsState
@@ -265,7 +268,7 @@ fun MainScreen(
                     SettingsScreen()
                     activeRoute = DrawerMenuItem.Settings.route
                 }
-                composable(Screen.Channel.route) {
+                composable(Screen.Channel.route + "/{channelId}") {
                     val channelId = it.arguments?.getString("channelId")
                     ChannelScreen(channelId!!, onBackPressed = { navController.navigateUp() })
                 }
@@ -281,38 +284,36 @@ fun MainScreen(
                     )
                 }
                 dialog(DrawerMenuItem.Logout.route) {
-                    Surface(color = MaterialTheme.colors.background) {
-                        AlertDialog(
-                            onDismissRequest = { navController.navigateUp() },
-                            title = {
-                                Text(stringResource(id = R.string.logout_question))
-                            },
-                            text = {
-                                Text(stringResource(id = R.string.logout_confirm))
-                            },
-                            confirmButton = {
-                                OutlinedButton(
-                                    onClick = {
-                                        viewModel.setEvent(MainContract.Event.OnLogout)
-                                    }
-                                ) {
-                                    Text(stringResource(id = R.string.logout))
-                                }
-                            },
-                            dismissButton  = {
-                                OutlinedButton(
-                                    onClick = { navController.navigateUp() }
-                                ) {
-                                    Text(stringResource(id = R.string.dismiss))
-                                }
-                            }
-                        )
-                    }
+                    CustomAlertDialog(
+                        title = R.string.logout_question,
+                        text = R.string.logout_confirm,
+                        confirmButtonText = R.string.logout,
+                        dismissButtonText = R.string.dismiss,
+                        onConfirm = { viewModel.setEvent(MainContract.Event.OnLogout) },
+                        onDismiss = { navController.navigateUp() }
+                    )
+                }
+                dialog(Screen.DeleteChannel.route + "/{cid}") {
+
+                    val cid = it.arguments?.getString("cid")!!
+
+                    CustomAlertDialog(
+                        title = R.string.delete_channel_dialog_title,
+                        text = R.string.delete_channel_dialog_text,
+                        confirmButtonText = R.string.delete_channel_confirm,
+                        dismissButtonText = R.string.dismiss,
+                        onConfirm = {
+                            viewModel.deleteChannel(cid)
+                            navController.navigateUp()
+                        },
+                        onDismiss = { navController.navigateUp() }
+                    )
                 }
             }
         }
     }
 }
+
 
 //@Preview
 @Composable
@@ -322,6 +323,7 @@ fun ChannelsScreen(
     currentUser: User? = null,
     loading: Boolean = true
 ) {
+
     ChatTheme() {
         Column {
             ChannelListHeader(modifier = Modifier.fillMaxWidth(),
@@ -368,6 +370,9 @@ fun ChannelsScreen(
                     onChannelClick = {
                         navController.navigate("${Screen.Channel.route}/${it.cid}")
                     },
+                    onChannelLongClick = {
+                        navController.navigate("${Screen.DeleteChannel.route}/${it.cid}")
+                    }
                 )
             } else {
                 Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {

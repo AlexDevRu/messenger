@@ -6,4 +6,5 @@ sealed class Screen(val route: String) {
     object Channel: Screen("Channel")
     object EditProfile : Screen("EditProfile")
     object Users : Screen("Users")
+    object DeleteChannel : Screen("DeleteChannel")
 }

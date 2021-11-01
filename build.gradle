@@ -34,4 +34,5 @@ ext {
     firebase_boom_version = "28.4.2"
     play_services_auth_version = "19.2.0"
     glide_version = "4.12.0"
+    coil_version = "1.4.0"
 }

@@ -3,6 +3,7 @@ package com.example.chat.ui.main
 import com.example.chat.ui.base.UiEffect
 import com.example.chat.ui.base.UiEvent
 import com.example.chat.ui.base.UiState
+import io.getstream.chat.android.client.models.Channel
 import io.getstream.chat.android.client.models.User
 
 object MainContract {
@@ -14,7 +15,7 @@ object MainContract {
 
     data class State(
         val user: User? = null,
-        val loading: Boolean = false
+        val loading: Boolean = false,
     ): UiState
 
     sealed class Effect: UiEffect {

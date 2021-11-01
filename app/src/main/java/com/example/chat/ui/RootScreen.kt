@@ -5,8 +5,8 @@ import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
 import com.example.chat.ui.main.MainScreen
-import com.example.chat.ui.main.Screen
 import com.example.chat.ui.auth.AuthScreen
+import com.example.chat.ui.models.Screen
 import com.example.domain.use_cases.local.preferences.GetUserUseCase
 import org.koin.androidx.compose.get
 

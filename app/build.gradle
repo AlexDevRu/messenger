@@ -112,7 +112,7 @@ dependencies {
     // Koin for Jetpack Compose
     implementation "io.insert-koin:koin-androidx-compose:$koin_version"
 
-    implementation("io.coil-kt:coil-compose:1.4.0")
+    implementation("io.coil-kt:coil-compose:$coil_version")
 
 
     implementation 'com.github.razir.progressbutton:progressbutton:2.1.0'
