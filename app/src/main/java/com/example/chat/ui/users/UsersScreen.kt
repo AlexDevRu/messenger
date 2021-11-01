@@ -12,7 +12,10 @@ import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.res.vectorResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
@@ -22,6 +25,7 @@ import com.example.chat.R
 import com.example.chat.ui.main.MainContract
 import com.example.chat.ui.models.Screen
 import io.getstream.chat.android.client.models.User
+import io.getstream.chat.android.compose.ui.common.BackButton
 import io.getstream.chat.android.compose.ui.common.SearchInput
 import io.getstream.chat.android.compose.ui.common.avatar.UserAvatar
 import io.getstream.chat.android.compose.ui.theme.ChatTheme
@@ -57,7 +61,7 @@ fun UsersScreen(
             when(effect) {
                 is UsersContract.Effect.GoToChat -> {
                     val cid = (effect as UsersContract.Effect.GoToChat).cid
-                    navController.navigate("${Screen.Channel.route}/$cid")
+                    navController.navigate(Screen.Channel.createRoute(cid))
                 }
                 is UsersContract.Effect.SearchFailure -> {
                     snackbarCoroutineScope.launch {
@@ -97,27 +101,25 @@ private fun convertDate(milliseconds: Long): String {
 }
 
 @Composable
-fun UserItem(
+private fun UserItem(
     user: User,
     modifier: Modifier = Modifier,
     onClick: () -> Unit = {}
 ) {
-    ChatTheme() {
-        Box(modifier = modifier.clickable(
-            interactionSource = remember { MutableInteractionSource() },
-            indication = rememberRipple()
+    Box(modifier = modifier.clickable(
+        interactionSource = remember { MutableInteractionSource() },
+        indication = rememberRipple()
+    ) {
+        onClick()
+    }) {
+        Row(
+            modifier = Modifier.padding(8.dp),
+            horizontalArrangement = Arrangement.spacedBy(8.dp)
         ) {
-            onClick()
-        }) {
-            Row(
-                modifier = Modifier.padding(8.dp),
-                horizontalArrangement = Arrangement.spacedBy(8.dp)
-            ) {
-                UserAvatar(user = user, modifier = Modifier.size(40.dp))
-                Column() {
-                    Text(text = user.id, fontSize = 16.sp, fontWeight = FontWeight.Bold)
-                    Text(text = convertDate(user.lastActive!!.time), fontSize = 12.sp)
-                }
+            UserAvatar(user = user, modifier = Modifier.size(40.dp))
+            Column() {
+                Text(text = user.id, fontSize = 16.sp, fontWeight = FontWeight.Bold)
+                Text(text = convertDate(user.lastActive!!.time), fontSize = 12.sp)
             }
         }
     }
@@ -135,9 +137,8 @@ private fun UsersToolbar(
     }
 
     TopAppBar(
-        modifier = Modifier
-            .fillMaxWidth(),
-        backgroundColor = Color.White
+        modifier = Modifier.fillMaxWidth(),
+        backgroundColor = MaterialTheme.colors.surface
     ) {
         Row(modifier = Modifier
             .padding(8.dp)
@@ -146,36 +147,29 @@ private fun UsersToolbar(
             verticalAlignment = Alignment.CenterVertically
         ) {
             Row(verticalAlignment = Alignment.CenterVertically) {
-                IconButton(onClick = {
-                    if(searchExpanded) searchExpanded = false
-                    else onBackPressed()
-                }) {
-                    Icon(
-                        painterResource(id = R.drawable.ic_baseline_arrow_back_24),
-                        "contentDescription",
-                        tint = Color.Black
-                    )
-                }
+
+                BackButton(
+                    imageVector = ImageVector.vectorResource(R.drawable.ic_baseline_arrow_back_24),
+                    onBackPressed = onBackPressed
+                )
 
                 if(!searchExpanded) {
                     Text(
-                        text = "Users",
+                        text = stringResource(Screen.Users.displayText!!),
                         fontSize = 18.sp
                     )
                 }
             }
 
             if(searchExpanded) {
-                ChatTheme() {
-                    SearchInput(
-                        modifier = Modifier.fillMaxWidth(),
-                        query = query,
-                        label = { Text("Search") },
-                        onValueChange = {
-                            onQueryChange(it)
-                        }
-                    )
-                }
+                SearchInput(
+                    modifier = Modifier.fillMaxWidth(),
+                    query = query,
+                    label = { Text("Search") },
+                    onValueChange = {
+                        onQueryChange(it)
+                    }
+                )
             } else {
                 IconButton(onClick = {
                     searchExpanded = true
@@ -183,7 +177,7 @@ private fun UsersToolbar(
                     Icon(
                         painterResource(id = R.drawable.ic_baseline_search_24),
                         "contentDescription",
-                        tint = Color.Black
+                        tint = MaterialTheme.colors.onSurface
                     )
                 }
             }

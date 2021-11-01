@@ -3,24 +3,21 @@ package com.example.chat.ui.edit_profile
 import android.Manifest
 import android.net.Uri
 import android.os.Build
-import android.util.Log
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.CircleShape
-import androidx.compose.material.*
+import androidx.compose.material.Scaffold
+import androidx.compose.material.rememberScaffoldState
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
-import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.unit.sp
 import coil.ImageLoader
 import coil.compose.LocalImageLoader
 import coil.compose.rememberImagePainter
@@ -32,10 +29,11 @@ import com.canhub.cropper.CropImageView
 import com.example.chat.R
 import com.example.chat.ui.base.composables.ProgressButton
 import com.example.chat.ui.base.composables.TextInputField
+import com.example.chat.ui.base.composables.Toolbar
+import com.example.chat.ui.models.Screen
 import io.getstream.chat.android.client.ChatClient
 import io.getstream.chat.android.client.models.User
 import io.getstream.chat.android.compose.ui.common.avatar.UserAvatar
-import io.getstream.chat.android.compose.ui.theme.ChatTheme
 import kotlinx.coroutines.launch
 import org.koin.androidx.compose.getViewModel
 
@@ -91,21 +89,7 @@ fun EditProfileScreen(
     Scaffold(
         scaffoldState = scaffoldState,
         topBar = {
-            TopAppBar(
-                backgroundColor = Color.White,
-                modifier = Modifier.fillMaxWidth(),
-            ) {
-                IconButton(onClick = {
-                    onCancel()
-                }) {
-                    Icon(
-                        painterResource(R.drawable.ic_baseline_arrow_back_24),
-                        "contentDescription",
-                        tint = Color.Black
-                    )
-                }
-                Text("Edit Profile", fontSize = 18.sp)
-            }
+            Toolbar(Screen.EditProfile.displayText, onCancel)
         }
     ) {
         LaunchedEffect(key1 = effect, block = {
@@ -125,8 +109,6 @@ fun EditProfileScreen(
                 }
             }
         })
-
-        Log.e("asd", if(state.avatar.toString().isEmpty()) viewModel.defaultAvatar else state.avatar.toString())
 
         Column(
             modifier = Modifier.padding(16.dp),
@@ -151,12 +133,10 @@ fun EditProfileScreen(
 
             when(state.avatar) {
                 is String -> {
-                    ChatTheme {
-                        UserAvatar(
-                            user = ChatClient.instance().getCurrentUser()!!,
-                            modifier = avatarModifier
-                        )
-                    }
+                    UserAvatar(
+                        user = ChatClient.instance().getCurrentUser()!!,
+                        modifier = avatarModifier
+                    )
                 }
                 is Uri -> {
                     CompositionLocalProvider(LocalImageLoader provides imageLoader) {

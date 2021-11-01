@@ -1,6 +1,6 @@
 <resources>
     <string name="app_name">Messenger</string>
-    <string name="api_key">jyg7rvbp6m42</string>
+    <string name="api_key" translatable="false">jyg7rvbp6m42</string>
 
     <string name="username">Username</string>
     <string name="first_name">First name</string>
@@ -46,4 +46,11 @@
     <string name="apply_changes">Apply changes</string>
     <string name="cancel">Cancel</string>
     <string name="password">Password</string>
+
+    <string name="dark_mode">Dark Mode</string>
+    <string name="language">Language</string>
+
+    <string name="edit_profile">Edit profile</string>
+    <string name="users">Users</string>
+
 </resources>

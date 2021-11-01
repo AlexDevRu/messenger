@@ -5,6 +5,7 @@ import com.example.chat.ui.base.BaseViewModel
 import io.getstream.chat.android.client.ChatClient
 import io.getstream.chat.android.client.api.models.QueryUsersRequest
 import io.getstream.chat.android.client.models.Filters
+import io.getstream.chat.android.offline.ChatDomain
 
 class UsersVM: BaseViewModel<UsersContract.Event, UsersContract.State, UsersContract.Effect>() {
 
@@ -83,5 +84,7 @@ class UsersVM: BaseViewModel<UsersContract.Event, UsersContract.State, UsersCont
                 Log.e(TAG, result.error().message.toString())
             }
         }
+
+        ///ChatDomain.instance().
     }
 }

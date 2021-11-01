@@ -4,7 +4,11 @@ import androidx.annotation.DrawableRes
 import androidx.annotation.StringRes
 import com.example.chat.R
 
-sealed class DrawerMenuItem(route: String, @StringRes val displayTitle: Int, @DrawableRes val iconRes: Int): Screen(route) {
+sealed class DrawerMenuItem(
+    route: String,
+    @StringRes val displayTitle: Int,
+    @DrawableRes val iconRes: Int
+): Screen(route, displayTitle) {
     object Channels : DrawerMenuItem("Channels", R.string.channels, R.drawable.ic_channels)
     object Settings : DrawerMenuItem("Settings",
         R.string.settings,

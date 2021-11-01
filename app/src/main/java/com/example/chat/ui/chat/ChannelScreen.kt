@@ -79,127 +79,125 @@ fun ChannelScreen(
 
     val user by listViewModel.user.collectAsState()
 
-    BackHandler {
+    val onBack = {
         if(listViewModel.channel.messages.isNullOrEmpty()) {
             viewModel.deleteChannel(listViewModel.channel.cid)
             onBackPressed()
         }
     }
 
-    ChatTheme {
-        Box(modifier = Modifier.fillMaxSize()) {
-            Scaffold(
-                modifier = Modifier.fillMaxSize(),
-                topBar = {
-                    MessageListHeader(
-                        modifier = Modifier.height(56.dp),
-                        channel = listViewModel.channel,
-                        currentUser = ChatClient.instance().getCurrentUser()!!,
-                        onBackPressed = {
-                            onBackPressed()
-                        }
-                    )
+    BackHandler(onBack = onBack)
+
+    Box(modifier = Modifier.fillMaxSize()) {
+        Scaffold(
+            modifier = Modifier.fillMaxSize(),
+            topBar = {
+                MessageListHeader(
+                    modifier = Modifier.height(56.dp),
+                    channel = listViewModel.channel,
+                    currentUser = ChatClient.instance().getCurrentUser()!!,
+                    onBackPressed = onBack
+                )
+            },
+            bottomBar = {
+                MessageComposer(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .wrapContentHeight()
+                        .align(Alignment.Center),
+                    viewModel = composerViewModel,
+                    onAttachmentsClick = { attachmentsPickerViewModel.changeAttachmentState(true) },
+                    onCancelAction = {
+                        listViewModel.dismissAllMessageActions()
+                        composerViewModel.dismissMessageActions()
+                    }
+                )
+            }
+        ) {
+            MessageList(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .background(ChatTheme.colors.appBackground)
+                    .padding(it),
+                viewModel = listViewModel,
+                onThreadClick = { message ->
+                    composerViewModel.setMessageMode(Thread(message))
+                    listViewModel.openMessageThread(message)
                 },
-                bottomBar = {
-                    MessageComposer(
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .wrapContentHeight()
-                            .align(Alignment.Center),
-                        viewModel = composerViewModel,
-                        onAttachmentsClick = { attachmentsPickerViewModel.changeAttachmentState(true) },
-                        onCancelAction = {
-                            listViewModel.dismissAllMessageActions()
-                            composerViewModel.dismissMessageActions()
+                onImagePreviewResult = { result ->
+                    when (result?.resultType) {
+                        ImagePreviewResultType.QUOTE -> {
+                            val message = listViewModel.getMessageWithId(result.messageId)
+
+                            if (message != null) {
+                                composerViewModel.performMessageAction(Reply(message))
+                            }
                         }
-                    )
+
+                        ImagePreviewResultType.SHOW_IN_CHAT -> {
+                            listViewModel.focusMessage(result.messageId)
+                        }
+                        null -> Unit
+                    }
                 }
-            ) {
-                MessageList(
-                    modifier = Modifier
-                        .fillMaxSize()
-                        .background(ChatTheme.colors.appBackground)
-                        .padding(it),
-                    viewModel = listViewModel,
-                    onThreadClick = { message ->
-                        composerViewModel.setMessageMode(Thread(message))
-                        listViewModel.openMessageThread(message)
-                    },
-                    onImagePreviewResult = { result ->
-                        when (result?.resultType) {
-                            ImagePreviewResultType.QUOTE -> {
-                                val message = listViewModel.getMessageWithId(result.messageId)
+            )
+        }
 
-                                if (message != null) {
-                                    composerViewModel.performMessageAction(Reply(message))
-                                }
-                            }
+        val selectedMessage = listViewModel.currentMessagesState.selectedMessage
 
-                            ImagePreviewResultType.SHOW_IN_CHAT -> {
-                                listViewModel.focusMessage(result.messageId)
-                            }
-                            null -> Unit
-                        }
-                    }
-                )
-            }
+        if (selectedMessage != null) {
+            SelectedMessageOverlay(
+                messageOptions = defaultMessageOptions(selectedMessage, user, listViewModel.isInThread),
+                message = selectedMessage,
+                onMessageAction = { action ->
+                    composerViewModel.performMessageAction(action)
+                    listViewModel.performMessageAction(action)
+                },
+                onDismiss = { listViewModel.removeOverlay() }
+            )
+        }
 
-            val selectedMessage = listViewModel.currentMessagesState.selectedMessage
-
-            if (selectedMessage != null) {
-                SelectedMessageOverlay(
-                    messageOptions = defaultMessageOptions(selectedMessage, user, listViewModel.isInThread),
-                    message = selectedMessage,
-                    onMessageAction = { action ->
-                        composerViewModel.performMessageAction(action)
-                        listViewModel.performMessageAction(action)
-                    },
-                    onDismiss = { listViewModel.removeOverlay() }
-                )
-            }
-
-            AnimatedVisibility(
-                visible = attachmentsPickerViewModel.isShowingAttachments,
-                enter = fadeIn(),
-                exit = fadeOut(animationSpec = tween(delayMillis = AnimationConstants.DefaultDurationMillis / 2))
-            ) {
-                AttachmentsPicker(
-                    attachmentsPickerViewModel = attachmentsPickerViewModel,
-                    modifier = Modifier
-                        .align(Alignment.BottomCenter)
-                        .height(350.dp)
-                        .animateEnterExit(
-                            enter = slideInVertically(
-                                initialOffsetY = { height -> height },
-                                animationSpec = tween()
-                            ),
-                            exit = slideOutVertically(
-                                targetOffsetY = { height -> height },
-                                animationSpec = tween()
-                            )
+        AnimatedVisibility(
+            visible = attachmentsPickerViewModel.isShowingAttachments,
+            enter = fadeIn(),
+            exit = fadeOut(animationSpec = tween(delayMillis = AnimationConstants.DefaultDurationMillis / 2))
+        ) {
+            AttachmentsPicker(
+                attachmentsPickerViewModel = attachmentsPickerViewModel,
+                modifier = Modifier
+                    .align(Alignment.BottomCenter)
+                    .height(350.dp)
+                    .animateEnterExit(
+                        enter = slideInVertically(
+                            initialOffsetY = { height -> height },
+                            animationSpec = tween()
                         ),
-                    onAttachmentsSelected = { attachments ->
-                        attachmentsPickerViewModel.changeAttachmentState(false)
-                        composerViewModel.addSelectedAttachments(attachments)
-                    },
-                    onDismiss = {
-                        attachmentsPickerViewModel.changeAttachmentState(false)
-                        attachmentsPickerViewModel.dismissAttachments()
-                    }
-                )
-            }
+                        exit = slideOutVertically(
+                            targetOffsetY = { height -> height },
+                            animationSpec = tween()
+                        )
+                    ),
+                onAttachmentsSelected = { attachments ->
+                    attachmentsPickerViewModel.changeAttachmentState(false)
+                    composerViewModel.addSelectedAttachments(attachments)
+                },
+                onDismiss = {
+                    attachmentsPickerViewModel.changeAttachmentState(false)
+                    attachmentsPickerViewModel.dismissAttachments()
+                }
+            )
+        }
 
-            val deleteAction = listViewModel.messageActions.firstOrNull { it is Delete }
+        val deleteAction = listViewModel.messageActions.firstOrNull { it is Delete }
 
-            if (deleteAction != null) {
-                SimpleDialog(
-                    modifier = Modifier.padding(16.dp),
-                    title = "Delete message",
-                    message = "Delete message?",
-                    onPositiveAction = { listViewModel.deleteMessage(deleteAction.message) },
-                    onDismiss = { listViewModel.dismissMessageAction(deleteAction) }
-                )
-            }
+        if (deleteAction != null) {
+            SimpleDialog(
+                modifier = Modifier.padding(16.dp),
+                title = "Delete message",
+                message = "Delete message?",
+                onPositiveAction = { listViewModel.deleteMessage(deleteAction.message) },
+                onDismiss = { listViewModel.dismissMessageAction(deleteAction) }
+            )
         }
     }
 }

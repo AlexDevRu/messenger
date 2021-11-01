@@ -152,9 +152,7 @@ fun AuthScreen(
             )
 
             ProgressButton(
-                modifier = Modifier.layoutId("signButton")
-                    .padding(vertical = 8.dp)
-                    .fillMaxWidth(),
+                modifier = Modifier.layoutId("signButton").fillMaxWidth(),
                 onClick = {
                     viewModel.setEvent(AuthContract.Event.OnSignInClicked)
                 },

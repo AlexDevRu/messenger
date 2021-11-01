@@ -1,10 +1,19 @@
 package com.example.chat.ui.models
 
-sealed class Screen(val route: String) {
+import androidx.annotation.StringRes
+import com.example.chat.R
+
+const val channelCidArgName = "cid"
+
+sealed class Screen(val route: String, @StringRes val displayText: Int? = null) {
     object Auth : Screen("Auth")
-    object Main : Screen("Main")
-    object Channel: Screen("Channel")
-    object EditProfile : Screen("EditProfile")
-    object Users : Screen("Users")
-    object DeleteChannel : Screen("DeleteChannel")
+    object Main : Screen("Main", R.string.app_name)
+    object Channel: Screen("Channel/{$channelCidArgName}") {
+        fun createRoute(cid: String) = "Channel/$cid"
+    }
+    object EditProfile : Screen("EditProfile", R.string.edit_profile)
+    object Users : Screen("Users", R.string.users)
+    object DeleteChannel : Screen("DeleteChannel/{$channelCidArgName}", R.string.delete_channel_dialog_title) {
+        fun createRoute(cid: String) = "DeleteChannel/$cid"
+    }
 }
