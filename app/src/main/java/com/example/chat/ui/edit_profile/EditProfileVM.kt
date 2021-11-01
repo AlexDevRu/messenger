@@ -26,6 +26,9 @@ class EditProfileVM(
         private const val minCharacters = 4
     }
 
+    val defaultAvatar: String
+        get() = "https://getstream.imgix.net/images/random_svg/${currentState.userName.firstOrNull()?.uppercase()}.svg"
+
     private val client = ChatClient.instance()
 
     override fun createInitialState(): EditProfileContract.State {
