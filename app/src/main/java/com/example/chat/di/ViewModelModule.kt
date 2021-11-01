@@ -15,7 +15,7 @@ val viewModelModule = module {
         AuthVM(get(), get())
     }
     viewModel {
-        MainVM(get(), get(), get())
+        MainVM(get(), get(), get(), get())
     }
     viewModel {
         EditProfileVM(androidApplication())
@@ -24,12 +24,9 @@ val viewModelModule = module {
         UsersVM()
     }
     viewModel {
-        ChatVM()
+        ChatVM(get())
     }
     viewModel { params ->
         MessageListViewModel(params.get())
     }
 }
-
-
-

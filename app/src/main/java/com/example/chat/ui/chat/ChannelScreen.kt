@@ -82,6 +82,7 @@ fun ChannelScreen(
     BackHandler {
         if(listViewModel.channel.messages.isNullOrEmpty()) {
             viewModel.deleteChannel(listViewModel.channel.cid)
+            onBackPressed()
         }
     }
 

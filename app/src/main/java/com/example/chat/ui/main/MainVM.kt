@@ -6,16 +6,17 @@ import com.example.chat.ui.base.BaseViewModel
 import com.example.domain.common.Result
 import com.example.domain.use_cases.local.preferences.GetUserUseCase
 import com.example.domain.use_cases.local.preferences.SaveUserUseCase
+import com.example.domain.use_cases.remote.DeleteChannelUseCase
 import com.example.domain.use_cases.remote.SignInUserUseCase
 import io.getstream.chat.android.client.ChatClient
-import io.getstream.chat.android.offline.ChatDomain
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 
 class MainVM(
     private val signInUserUseCase: SignInUserUseCase,
     private val saveUserUseCase: SaveUserUseCase,
-    private val getUserUseCase: GetUserUseCase
+    private val getUserUseCase: GetUserUseCase,
+    private val deleteChannelUseCase: DeleteChannelUseCase
 ): BaseViewModel<MainContract.Event, MainContract.State, MainContract.Effect>() {
 
     private val client = ChatClient.instance()
@@ -69,16 +70,5 @@ class MainVM(
 
     private val TAG = "MainVM"
 
-    fun deleteChannel(channelId: String) {
-        Log.w(TAG, "deleteChannel")
-
-        ChatDomain.instance().deleteChannel(channelId).enqueue { result ->
-            if(result.isSuccess) {
-                Log.w(TAG, "channel deleted")
-            } else {
-                Log.w(TAG, "channel delete error ${result.error().message}")
-                setEffect { MainContract.Effect.ShowErrorSnackbar(result.error().message) }
-            }
-        }
-    }
+    fun deleteChannel(cid: String) = deleteChannelUseCase(cid)
 }

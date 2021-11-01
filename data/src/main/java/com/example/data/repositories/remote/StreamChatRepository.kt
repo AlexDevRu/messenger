@@ -1,5 +1,6 @@
 package com.example.data.repositories.remote
 
+import android.util.Log
 import com.example.data.mappers.toDataModel
 import com.example.data.mappers.toDomainModel
 import com.example.domain.common.Result
@@ -8,10 +9,16 @@ import com.example.domain.repositories.remote.IStreamChatRepository
 import io.getstream.chat.android.client.ChatClient
 import io.getstream.chat.android.client.api.models.QueryUsersRequest
 import io.getstream.chat.android.client.models.Filters
+import io.getstream.chat.android.offline.ChatDomain
 
 class StreamChatRepository: IStreamChatRepository {
 
+    companion object {
+        private const val TAG = "StreamChatRepository"
+    }
+
     private val client = ChatClient.instance()
+    private val domain = ChatDomain.instance()
 
     override suspend fun getUserById(userId: String): Result<ChatUser?> {
         return try {
@@ -45,6 +52,18 @@ class StreamChatRepository: IStreamChatRepository {
             if(result.isSuccess) Result.Success(Unit) else Result.Failure(Exception(result.error().message))
         } catch (e: Exception) {
             Result.Failure(e)
+        }
+    }
+
+    override fun deleteChannel(cid: String) {
+        Log.w(TAG, "deleteChannel")
+
+        domain.deleteChannel(cid).enqueue { result ->
+            if(result.isSuccess) {
+                Log.w(TAG, "channel deleted")
+            } else {
+                Log.w(TAG, "channel delete error ${result.error().message}")
+            }
         }
     }
 }
