@@ -7,7 +7,6 @@ import androidx.compose.material.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.layoutId
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
@@ -28,14 +27,13 @@ import org.koin.androidx.compose.getViewModel
 @Composable
 private fun Logo(modifier: Modifier = Modifier) {
     Column(modifier = modifier, horizontalAlignment = Alignment.CenterHorizontally) {
-        Surface(modifier = Modifier.size(128.dp, 128.dp)) {
-            Image(
-                painter = painterResource(R.drawable.speak),
-                contentDescription = "logo"
-            )
-        }
+        Image(
+            modifier = Modifier.size(128.dp, 128.dp),
+            painter = painterResource(R.drawable.speak),
+            contentDescription = "logo"
+        )
         Spacer(modifier = Modifier.height(4.dp))
-        Text(text = stringResource(id = R.string.app_name), fontWeight = FontWeight.Bold, fontSize = 28.sp)
+        Text(text = stringResource(R.string.app_name), fontWeight = FontWeight.Bold, fontSize = 28.sp)
     }
 }
 
@@ -108,7 +106,6 @@ fun AuthScreen(
 
         ConstraintLayout(modifier = Modifier
             .padding(16.dp)
-            .background(Color.White)
             .verticalScroll(scrollState),
             constraintSet = constraintSet
         ) {
@@ -152,7 +149,9 @@ fun AuthScreen(
             )
 
             ProgressButton(
-                modifier = Modifier.layoutId("signButton").fillMaxWidth(),
+                modifier = Modifier
+                    .layoutId("signButton")
+                    .fillMaxWidth(),
                 onClick = {
                     viewModel.setEvent(AuthContract.Event.OnSignInClicked)
                 },

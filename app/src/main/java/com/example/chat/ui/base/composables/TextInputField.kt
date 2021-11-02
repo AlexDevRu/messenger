@@ -5,6 +5,7 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material.Icon
+import androidx.compose.material.MaterialTheme
 import androidx.compose.material.OutlinedTextField
 import androidx.compose.material.Text
 import androidx.compose.runtime.Composable
@@ -71,7 +72,7 @@ fun TextInputField(
 
     val errorIcon: @Composable () -> Unit = { Icon(
         painter = painterResource(id = R.drawable.ic_baseline_error_24),
-        tint = Color.Red,
+        tint = MaterialTheme.colors.error,
         contentDescription = ""
     ) }
 
@@ -101,7 +102,7 @@ fun TextInputField(
                 val stringRes = errorStr(it)
                 Text(
                     text = stringResource(id = stringRes.stringRes, *(stringRes.formatArgs)),
-                    color = Color.Red,
+                    color = MaterialTheme.colors.error,
                     fontSize = 12.sp
                 )
             }
