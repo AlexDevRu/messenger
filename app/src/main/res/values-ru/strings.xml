@@ -52,4 +52,6 @@
 
     <string name="edit_profile">Редактировать профиль</string>
     <string name="users">Пользователи</string>
+
+    <string name="wrong_credentials_message">Пользователя не существует. Проверьте имя пользователя и пароль</string>
 </resources>

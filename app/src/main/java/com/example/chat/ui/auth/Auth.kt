@@ -20,6 +20,7 @@ import com.example.chat.R
 import com.example.chat.ui.base.composables.CheckboxWithText
 import com.example.chat.ui.base.composables.ProgressButton
 import com.example.chat.ui.base.composables.TextInputField
+import com.example.domain.exceptions.WrongCredentialsException
 import kotlinx.coroutines.launch
 import org.koin.androidx.compose.getViewModel
 
@@ -86,6 +87,8 @@ fun AuthScreen(
         scaffoldState = scaffoldState
     ) {
 
+        val wrongCredentialsMessage = stringResource(R.string.wrong_credentials_message)
+
         LaunchedEffect(key1 = effect, block = {
             when(effect) {
                 AuthContract.Effect.SignInSuccess -> {
@@ -93,12 +96,16 @@ fun AuthScreen(
                     Log.d("asd", "navigateToMain")
                 }
                 is AuthContract.Effect.SignInFailure -> {
+
+                    val throwable = (effect as AuthContract.Effect.SignInFailure).throwable
+
+                    val message = when(throwable) {
+                        is WrongCredentialsException -> wrongCredentialsMessage
+                        else -> throwable?.message.orEmpty()
+                    }
+
                     snackbarCoroutineScope.launch {
-                        scaffoldState.snackbarHostState
-                            .showSnackbar(
-                                (effect as AuthContract.Effect.SignInFailure)
-                                    .throwable?.message.orEmpty()
-                            )
+                        scaffoldState.snackbarHostState.showSnackbar(message)
                     }
                 }
             }

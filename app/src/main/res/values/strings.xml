@@ -53,4 +53,6 @@
     <string name="edit_profile">Edit profile</string>
     <string name="users">Users</string>
 
+    <string name="wrong_credentials_message">User does not exist. Check your username or password</string>
+
 </resources>
