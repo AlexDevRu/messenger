@@ -1,7 +1,9 @@
 package com.example.chat.ui.chat
 
-import androidx.activity.OnBackPressedCallback
-import androidx.activity.compose.LocalOnBackPressedDispatcherOwner
+import android.Manifest
+import android.content.pm.PackageManager
+import androidx.activity.compose.rememberLauncherForActivityResult
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.animation.*
 import androidx.compose.animation.core.AnimationConstants
 import androidx.compose.animation.core.tween
@@ -12,10 +14,11 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
-import androidx.compose.ui.platform.LocalLifecycleOwner
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import androidx.core.content.ContextCompat
 import androidx.lifecycle.viewmodel.compose.viewModel
+import com.example.chat.ui.base.composables.BackHandler
 import io.getstream.chat.android.client.ChatClient
 import io.getstream.chat.android.compose.state.imagepreview.ImagePreviewResultType
 import io.getstream.chat.android.compose.state.messages.Thread
@@ -50,184 +53,184 @@ fun ChannelScreen(
     viewModel: ChatVM = getViewModel(),
 ) {
 
-    val listViewModel = viewModel<MessageListViewModel>(
-        factory = MessagesViewModelFactory(
-            LocalContext.current,
-            cid,
-            ChatClient.instance(),
-            ChatDomain.instance()
+    val context = LocalContext.current
+
+    val granted = remember {
+        mutableStateOf(
+            ContextCompat.checkSelfPermission(context, Manifest.permission.WRITE_EXTERNAL_STORAGE) == PackageManager.PERMISSION_GRANTED &&
+                    ContextCompat.checkSelfPermission(context, Manifest.permission.READ_EXTERNAL_STORAGE) == PackageManager.PERMISSION_GRANTED
         )
-    )
+    }
 
-    val composerViewModel = viewModel<MessageComposerViewModel>(
-        factory = MessagesViewModelFactory(
-            LocalContext.current,
-            cid,
-            ChatClient.instance(),
-            ChatDomain.instance()
-        )
-    )
-
-    val attachmentsPickerViewModel = viewModel<AttachmentsPickerViewModel>(
-        factory = MessagesViewModelFactory(
-            LocalContext.current,
-            cid,
-            ChatClient.instance(),
-            ChatDomain.instance()
-        )
-    )
-
-    val user by listViewModel.user.collectAsState()
-
-    val onBack = {
-        if(listViewModel.channel.messages.isNullOrEmpty()) {
-            viewModel.deleteChannel(listViewModel.channel.cid)
+    val permissionsLauncher = rememberLauncherForActivityResult(
+        ActivityResultContracts.RequestMultiplePermissions()
+    ) {
+        if(it.values.all { it }) {
+            granted.value = true
+        } else {
             onBackPressed()
         }
     }
 
-    BackHandler(onBack = onBack)
+    LaunchedEffect(key1 = Unit) {
+        permissionsLauncher.launch(
+            arrayOf(
+                Manifest.permission.WRITE_EXTERNAL_STORAGE,
+                Manifest.permission.READ_EXTERNAL_STORAGE
+            )
+        )
+    }
 
-    Box(modifier = Modifier.fillMaxSize()) {
-        Scaffold(
-            modifier = Modifier.fillMaxSize(),
-            topBar = {
-                MessageListHeader(
-                    modifier = Modifier.height(56.dp),
-                    channel = listViewModel.channel,
-                    currentUser = ChatClient.instance().getCurrentUser()!!,
-                    onBackPressed = onBack
-                )
-            },
-            bottomBar = {
-                MessageComposer(
+    if(granted.value) {
+        val listViewModel = viewModel<MessageListViewModel>(
+            factory = MessagesViewModelFactory(
+                LocalContext.current,
+                cid,
+                ChatClient.instance(),
+                ChatDomain.instance()
+            )
+        )
+
+        val composerViewModel = viewModel<MessageComposerViewModel>(
+            factory = MessagesViewModelFactory(
+                LocalContext.current,
+                cid,
+                ChatClient.instance(),
+                ChatDomain.instance()
+            )
+        )
+
+        val attachmentsPickerViewModel = viewModel<AttachmentsPickerViewModel>(
+            factory = MessagesViewModelFactory(
+                LocalContext.current,
+                cid,
+                ChatClient.instance(),
+                ChatDomain.instance()
+            )
+        )
+
+        val user by listViewModel.user.collectAsState()
+
+        val onBack = {
+            if(listViewModel.channel.messages.isNullOrEmpty()) {
+                viewModel.deleteChannel(listViewModel.channel.cid)
+            }
+            onBackPressed()
+        }
+
+        BackHandler(onBack = onBack)
+
+        Box(modifier = Modifier.fillMaxSize()) {
+            Scaffold(
+                modifier = Modifier.fillMaxSize(),
+                topBar = {
+                    MessageListHeader(
+                        modifier = Modifier.height(56.dp),
+                        channel = listViewModel.channel,
+                        currentUser = ChatClient.instance().getCurrentUser()!!,
+                        onBackPressed = onBack
+                    )
+                },
+                bottomBar = {
+                    MessageComposer(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .wrapContentHeight()
+                            .align(Alignment.Center),
+                        viewModel = composerViewModel,
+                        onAttachmentsClick = { attachmentsPickerViewModel.changeAttachmentState(true) },
+                        onCancelAction = {
+                            listViewModel.dismissAllMessageActions()
+                            composerViewModel.dismissMessageActions()
+                        }
+                    )
+                }
+            ) {
+                MessageList(
                     modifier = Modifier
-                        .fillMaxWidth()
-                        .wrapContentHeight()
-                        .align(Alignment.Center),
-                    viewModel = composerViewModel,
-                    onAttachmentsClick = { attachmentsPickerViewModel.changeAttachmentState(true) },
-                    onCancelAction = {
-                        listViewModel.dismissAllMessageActions()
-                        composerViewModel.dismissMessageActions()
+                        .fillMaxSize()
+                        .background(ChatTheme.colors.appBackground)
+                        .padding(it),
+                    viewModel = listViewModel,
+                    onThreadClick = { message ->
+                        composerViewModel.setMessageMode(Thread(message))
+                        listViewModel.openMessageThread(message)
+                    },
+                    onImagePreviewResult = { result ->
+                        when (result?.resultType) {
+                            ImagePreviewResultType.QUOTE -> {
+                                val message = listViewModel.getMessageWithId(result.messageId)
+
+                                if (message != null) {
+                                    composerViewModel.performMessageAction(Reply(message))
+                                }
+                            }
+
+                            ImagePreviewResultType.SHOW_IN_CHAT -> {
+                                listViewModel.focusMessage(result.messageId)
+                            }
+                            null -> Unit
+                        }
                     }
                 )
             }
-        ) {
-            MessageList(
-                modifier = Modifier
-                    .fillMaxSize()
-                    .background(ChatTheme.colors.appBackground)
-                    .padding(it),
-                viewModel = listViewModel,
-                onThreadClick = { message ->
-                    composerViewModel.setMessageMode(Thread(message))
-                    listViewModel.openMessageThread(message)
-                },
-                onImagePreviewResult = { result ->
-                    when (result?.resultType) {
-                        ImagePreviewResultType.QUOTE -> {
-                            val message = listViewModel.getMessageWithId(result.messageId)
 
-                            if (message != null) {
-                                composerViewModel.performMessageAction(Reply(message))
-                            }
-                        }
+            val selectedMessage = listViewModel.currentMessagesState.selectedMessage
 
-                        ImagePreviewResultType.SHOW_IN_CHAT -> {
-                            listViewModel.focusMessage(result.messageId)
-                        }
-                        null -> Unit
-                    }
-                }
-            )
-        }
-
-        val selectedMessage = listViewModel.currentMessagesState.selectedMessage
-
-        if (selectedMessage != null) {
-            SelectedMessageOverlay(
-                messageOptions = defaultMessageOptions(selectedMessage, user, listViewModel.isInThread),
-                message = selectedMessage,
-                onMessageAction = { action ->
-                    composerViewModel.performMessageAction(action)
-                    listViewModel.performMessageAction(action)
-                },
-                onDismiss = { listViewModel.removeOverlay() }
-            )
-        }
-
-        AnimatedVisibility(
-            visible = attachmentsPickerViewModel.isShowingAttachments,
-            enter = fadeIn(),
-            exit = fadeOut(animationSpec = tween(delayMillis = AnimationConstants.DefaultDurationMillis / 2))
-        ) {
-            AttachmentsPicker(
-                attachmentsPickerViewModel = attachmentsPickerViewModel,
-                modifier = Modifier
-                    .align(Alignment.BottomCenter)
-                    .height(350.dp)
-                    .animateEnterExit(
-                        enter = slideInVertically(
-                            initialOffsetY = { height -> height },
-                            animationSpec = tween()
-                        ),
-                        exit = slideOutVertically(
-                            targetOffsetY = { height -> height },
-                            animationSpec = tween()
-                        )
-                    ),
-                onAttachmentsSelected = { attachments ->
-                    attachmentsPickerViewModel.changeAttachmentState(false)
-                    composerViewModel.addSelectedAttachments(attachments)
-                },
-                onDismiss = {
-                    attachmentsPickerViewModel.changeAttachmentState(false)
-                    attachmentsPickerViewModel.dismissAttachments()
-                }
-            )
-        }
-
-        val deleteAction = listViewModel.messageActions.firstOrNull { it is Delete }
-
-        if (deleteAction != null) {
-            SimpleDialog(
-                modifier = Modifier.padding(16.dp),
-                title = "Delete message",
-                message = "Delete message?",
-                onPositiveAction = { listViewModel.deleteMessage(deleteAction.message) },
-                onDismiss = { listViewModel.dismissMessageAction(deleteAction) }
-            )
-        }
-    }
-}
-
-@Composable
-public fun BackHandler(enabled: Boolean = true, onBack: () -> Unit) {
-    // Safely update the current `onBack` lambda when a new one is provided
-    val currentOnBack by rememberUpdatedState(onBack)
-    // Remember in Composition a back callback that calls the `onBack` lambda
-    val backCallback = remember {
-        object : OnBackPressedCallback(enabled) {
-            override fun handleOnBackPressed() {
-                currentOnBack()
+            if (selectedMessage != null) {
+                SelectedMessageOverlay(
+                    messageOptions = defaultMessageOptions(selectedMessage, user, listViewModel.isInThread),
+                    message = selectedMessage,
+                    onMessageAction = { action ->
+                        composerViewModel.performMessageAction(action)
+                        listViewModel.performMessageAction(action)
+                    },
+                    onDismiss = { listViewModel.removeOverlay() }
+                )
             }
-        }
-    }
-    // On every successful composition, update the callback with the `enabled` value
-    SideEffect {
-        backCallback.isEnabled = enabled
-    }
-    val backDispatcher = checkNotNull(LocalOnBackPressedDispatcherOwner.current) {
-        "No OnBackPressedDispatcherOwner was provided via LocalOnBackPressedDispatcherOwner"
-    }.onBackPressedDispatcher
-    val lifecycleOwner = LocalLifecycleOwner.current
-    DisposableEffect(lifecycleOwner, backDispatcher) {
-        // Add callback to the backDispatcher
-        backDispatcher.addCallback(lifecycleOwner, backCallback)
-        // When the effect leaves the Composition, remove the callback
-        onDispose {
-            backCallback.remove()
+
+            AnimatedVisibility(
+                visible = attachmentsPickerViewModel.isShowingAttachments,
+                enter = fadeIn(),
+                exit = fadeOut(animationSpec = tween(delayMillis = AnimationConstants.DefaultDurationMillis / 2))
+            ) {
+                AttachmentsPicker(
+                    attachmentsPickerViewModel = attachmentsPickerViewModel,
+                    modifier = Modifier
+                        .align(Alignment.BottomCenter)
+                        .height(350.dp)
+                        .animateEnterExit(
+                            enter = slideInVertically(
+                                initialOffsetY = { height -> height },
+                                animationSpec = tween()
+                            ),
+                            exit = slideOutVertically(
+                                targetOffsetY = { height -> height },
+                                animationSpec = tween()
+                            )
+                        ),
+                    onAttachmentsSelected = { attachments ->
+                        attachmentsPickerViewModel.changeAttachmentState(false)
+                        composerViewModel.addSelectedAttachments(attachments)
+                    },
+                    onDismiss = {
+                        attachmentsPickerViewModel.changeAttachmentState(false)
+                        attachmentsPickerViewModel.dismissAttachments()
+                    }
+                )
+            }
+
+            val deleteAction = listViewModel.messageActions.firstOrNull { it is Delete }
+
+            if (deleteAction != null) {
+                SimpleDialog(
+                    modifier = Modifier.padding(16.dp),
+                    title = "Delete message",
+                    message = "Delete message?",
+                    onPositiveAction = { listViewModel.deleteMessage(deleteAction.message) },
+                    onDismiss = { listViewModel.dismissMessageAction(deleteAction) }
+                )
+            }
         }
     }
 }
