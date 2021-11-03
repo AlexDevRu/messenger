@@ -3,11 +3,15 @@ package com.example.chat.ui.main
 import android.util.Log
 import androidx.lifecycle.viewModelScope
 import com.example.chat.ui.base.BaseViewModel
+import com.example.data.mappers.toDataModel
+import com.example.data.mappers.toDomainModel
 import com.example.domain.common.Result
 import com.example.domain.use_cases.local.preferences.GetUserUseCase
 import com.example.domain.use_cases.local.preferences.SaveUserUseCase
 import com.example.domain.use_cases.remote.DeleteChannelUseCase
 import com.example.domain.use_cases.remote.SignInUserUseCase
+import com.google.firebase.auth.ktx.auth
+import com.google.firebase.ktx.Firebase
 import io.getstream.chat.android.client.ChatClient
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
@@ -18,6 +22,10 @@ class MainVM(
     private val getUserUseCase: GetUserUseCase,
     private val deleteChannelUseCase: DeleteChannelUseCase
 ): BaseViewModel<MainContract.Event, MainContract.State, MainContract.Effect>() {
+
+    companion object {
+        private const val TAG = "MainVM"
+    }
 
     private val client = ChatClient.instance()
 
@@ -49,6 +57,7 @@ class MainVM(
     private fun logout() {
         client.disconnect()
         saveUserUseCase(null)
+        Firebase.auth.signOut()
         setEffect { MainContract.Effect.Logout }
     }
 
@@ -63,12 +72,10 @@ class MainVM(
     override fun handleEvent(event: MainContract.Event) {
         when(event) {
             is MainContract.Event.OnUserLoad -> getUser()
-            is MainContract.Event.OnUserUpdated -> setState { copy(user = event.user) }
+            is MainContract.Event.OnUserUpdated -> setState { copy(user = event.user?.toDataModel()) }
             MainContract.Event.OnLogout -> logout()
         }
     }
-
-    private val TAG = "MainVM"
 
     fun deleteChannel(cid: String) = deleteChannelUseCase(cid)
 }

@@ -19,7 +19,7 @@ val viewModelModule = module {
         MainVM(get(), get(), get(), get())
     }
     viewModel {
-        EditProfileVM(androidApplication())
+        EditProfileVM(androidApplication(), get())
     }
     viewModel {
         UsersVM()

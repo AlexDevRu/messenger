@@ -2,8 +2,10 @@
 <resources>
     <string name="app_name">Мессенджер</string>
 
+    <string name="email">Электронная почта</string>
     <string name="username">Имя пользователя</string>
     <string name="first_name">Имя</string>
+    <string name="phone">Номер телефона</string>
 
     <string name="please_wait">Ждите</string>
     <string name="sign_in">Войти</string>
@@ -11,6 +13,7 @@
     <string name="sign_in_error">Произошла ошибка</string>
 
     <string name="channels">Каналы</string>
+    <string name="contacts">Контакты</string>
     <string name="groups">Группы</string>
     <string name="settings">Настройки</string>
     <string name="logout">Выход</string>
@@ -35,6 +38,7 @@
     <string name="small_length_validation">* %s должен содержать не меньше %d символов</string>
     <string name="password_no_numbers_validation">* Пароль должен содержать цифры</string>
     <string name="password_same_case_validation">* Пароль должен содержать разный регистр букв</string>
+    <string name="email_validation">* Неправильная схема электронной почты</string>
 
     <string name="user_already_exists_exception">Пользователь с таким именем уже существует. Повторите снова</string>
 

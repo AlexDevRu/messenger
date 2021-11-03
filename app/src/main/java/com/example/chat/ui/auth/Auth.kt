@@ -3,6 +3,7 @@ package com.example.chat.ui.auth
 import android.util.Log
 import androidx.compose.foundation.*
 import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
@@ -11,15 +12,21 @@ import androidx.compose.ui.layout.layoutId
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.constraintlayout.compose.ConstraintLayout
 import androidx.constraintlayout.compose.ConstraintSet
+import androidx.navigation.compose.NavHost
+import androidx.navigation.compose.composable
+import androidx.navigation.compose.rememberNavController
 import com.example.chat.R
 import com.example.chat.ui.base.composables.CheckboxWithText
 import com.example.chat.ui.base.composables.ProgressButton
 import com.example.chat.ui.base.composables.TextInputField
+import com.example.chat.ui.main.MainScreen
+import com.example.chat.ui.models.Screen
 import com.example.domain.exceptions.WrongCredentialsException
 import kotlinx.coroutines.launch
 import org.koin.androidx.compose.getViewModel
@@ -39,11 +46,30 @@ private fun Logo(modifier: Modifier = Modifier) {
 }
 
 @Composable
-fun AuthScreen(
-    navigateToMain: () -> Unit,
-    viewModel: AuthVM = getViewModel()
+fun Auth(
+    navigateToMain: () -> Unit
 ){
+    val navController = rememberNavController()
 
+    NavHost(navController = navController, startDestination = "check_credentials") {
+        composable("check_credentials") {
+            AuthScreen(
+                onSignInSuccess = navigateToMain,
+                onSignUpSuccess = { navController.navigate("new_user_settings") }
+            )
+        }
+        composable("new_user_settings") {
+            NewAccountSettingsScreen(onSuccess = navigateToMain)
+        }
+    }
+}
+
+@Composable
+fun AuthScreen(
+    onSignInSuccess: () -> Unit,
+    onSignUpSuccess: () -> Unit,
+    viewModel: AuthVM = getViewModel()
+) {
     val scrollState = rememberScrollState()
 
     val authState by viewModel.uiState.collectAsState()
@@ -51,7 +77,7 @@ fun AuthScreen(
 
     val constraintSet = ConstraintSet {
         val logo = createRefFor("logo")
-        val usernameInput = createRefFor("usernameInput")
+        val emailInput = createRefFor("emailInput")
         val passwordInput = createRefFor("passwordInput")
         val rememberMeCheckbox = createRefFor("rememberMeCheckbox")
         val signButton = createRefFor("signButton")
@@ -62,11 +88,11 @@ fun AuthScreen(
             start.linkTo(parent.start)
             end.linkTo(parent.end)
         }
-        constrain(usernameInput) {
+        constrain(emailInput) {
             top.linkTo(logo.bottom, margin = 30.dp)
         }
         constrain(passwordInput) {
-            top.linkTo(usernameInput.bottom)
+            top.linkTo(emailInput.bottom)
         }
         constrain(rememberMeCheckbox) {
             top.linkTo(passwordInput.bottom, margin = 8.dp)
@@ -92,17 +118,21 @@ fun AuthScreen(
         LaunchedEffect(key1 = effect, block = {
             when(effect) {
                 AuthContract.Effect.SignInSuccess -> {
-                    navigateToMain()
-                    Log.d("asd", "navigateToMain")
+                    onSignInSuccess()
                 }
-                is AuthContract.Effect.SignInFailure -> {
+                AuthContract.Effect.SignUpSuccess -> {
+                    onSignUpSuccess()
+                }
+                is AuthContract.Effect.AuthFailure -> {
 
-                    val throwable = (effect as AuthContract.Effect.SignInFailure).throwable
+                    val throwable = (effect as AuthContract.Effect.AuthFailure).throwable
 
                     val message = when(throwable) {
                         is WrongCredentialsException -> wrongCredentialsMessage
                         else -> throwable?.message.orEmpty()
                     }
+
+                    Log.e("asd", message)
 
                     snackbarCoroutineScope.launch {
                         scaffoldState.snackbarHostState.showSnackbar(message)
@@ -121,15 +151,15 @@ fun AuthScreen(
 
             TextInputField(
                 modifier = Modifier
-                    .layoutId("usernameInput")
+                    .layoutId("emailInput")
                     .fillMaxWidth(),
-                label = R.string.username,
-                value = authState.userName.orEmpty(),
-                maxCount = AuthVM.maxCharachters,
-                errors = authState.userNameValidationError,
+                label = R.string.email,
+                value = authState.email.orEmpty(),
+                errors = authState.emailValidationError,
                 onValueChanged = {
-                    viewModel.setEvent(AuthContract.Event.OnValidateUserName(it))
-                }
+                    viewModel.setEvent(AuthContract.Event.OnValidateEmail(it))
+                },
+                keyboardOptions = KeyboardOptions.Default.copy(keyboardType = KeyboardType.Email)
             )
 
             TextInputField(
@@ -139,17 +169,19 @@ fun AuthScreen(
                 label = R.string.password,
                 transformation = PasswordVisualTransformation(),
                 value = authState.password.orEmpty(),
+                maxCount = AuthVM.maxCharachters,
                 errors = authState.passwordValidationError,
                 onValueChanged = {
                     viewModel.setEvent(AuthContract.Event.OnValidatePassword(it))
-                }
+                },
+                keyboardOptions = KeyboardOptions.Default.copy(keyboardType = KeyboardType.Password)
             )
 
             CheckboxWithText(
                 modifier = Modifier.layoutId("rememberMeCheckbox"),
                 text = stringResource(id = R.string.remember_me),
                 enabled = !authState.loading,
-                checked = authState.saveSignInStatus,
+                checked = authState.rememberMe,
                 onCheckedChanged = {
                     viewModel.setEvent(AuthContract.Event.OnSignInStatusChanged(it))
                 }
@@ -163,9 +195,9 @@ fun AuthScreen(
                     viewModel.setEvent(AuthContract.Event.OnSignInClicked)
                 },
                 loading = authState.loading,
-                enabled = authState.userNameValidationError.isNullOrEmpty() &&
+                enabled = authState.emailValidationError.isNullOrEmpty() &&
                         authState.passwordValidationError.isNullOrEmpty() &&
-                        !authState.password.isNullOrEmpty() && !authState.userName.isNullOrEmpty(),
+                        !authState.password.isNullOrEmpty() && !authState.email.isNullOrEmpty(),
                 textRes = if(authState.mode == AuthContract.SIGN_MODE.SIGN_IN) R.string.sign_in else R.string.sign_up
             )
 

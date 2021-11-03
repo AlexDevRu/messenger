@@ -36,21 +36,34 @@ class StreamChatRepository: IStreamChatRepository {
         }
     }
 
+    override suspend fun connectUser(userId: String, email: String): Result<Unit> {
+        return try {
+            val token = client.devToken(userId)
+
+            val user = ChatUser(userId, email)
+
+            val result = client.connectUser(user.toDataModel(), token).execute()
+
+            if(result.isSuccess) Result.Success(Unit) else Result.Failure(Exception(result.error().message))
+        } catch (e: Exception) {
+            Result.Failure(e)
+        }
+    }
+
     override suspend fun connectUser(userId: String): Result<Unit> {
         return try {
             val token = client.devToken(userId)
 
             val userResult = getUserById(userId)
 
-            val user = if(userResult is Result.Success && userResult.value != null)
-                userResult.value!!
-            else
-                ChatUser(userId, userId)
-
-            val result = client.connectUser(user.toDataModel(), token).execute()
-
-            if(result.isSuccess) Result.Success(Unit) else Result.Failure(Exception(result.error().message))
-        } catch (e: Exception) {
+            when(userResult) {
+                is Result.Success -> {
+                    val result = client.connectUser(userResult.value!!.toDataModel(), token).execute()
+                    if(result.isSuccess) Result.Success(Unit) else Result.Failure(Exception(result.error().message))
+                }
+                is Result.Failure -> throw userResult.throwable
+            }
+        } catch(e: Exception) {
             Result.Failure(e)
         }
     }
@@ -64,6 +77,25 @@ class StreamChatRepository: IStreamChatRepository {
             } else {
                 Log.w(TAG, "channel delete error ${result.error().message}")
             }
+        }
+    }
+
+    override suspend fun partialUpdateUser(userId: String, name: String, avatar: String): ChatUser {
+        val setFields = mutableMapOf(
+            "name" to name,
+            "image" to avatar,
+            "email" to client.getCurrentUser()!!.extraData["email"].toString()
+        )
+        // сделать email айди пользователя
+
+        val result = client.partialUpdateUser(userId, setFields).execute()
+
+        if(result.isSuccess) {
+            Log.d(TAG, "user is updated successfully ${result.data()}")
+            return result.data().toDomainModel()
+        } else {
+            Log.d(TAG, "user update error ${result.error().message}")
+            throw Exception(result.error().message)
         }
     }
 }

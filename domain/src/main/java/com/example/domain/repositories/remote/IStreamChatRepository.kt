@@ -5,6 +5,8 @@ import com.example.domain.models.ChatUser
 
 interface IStreamChatRepository {
     suspend fun getUserById(userId: String): Result<ChatUser?>
+    suspend fun connectUser(userId: String, email: String): Result<Unit>
     suspend fun connectUser(userId: String): Result<Unit>
     fun deleteChannel(cid: String)
+    suspend fun partialUpdateUser(userId: String, name: String, avatar: String): ChatUser
 }

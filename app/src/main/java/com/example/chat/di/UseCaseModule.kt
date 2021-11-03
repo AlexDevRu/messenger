@@ -1,10 +1,7 @@
 package com.example.chat.di
 
 import com.example.domain.use_cases.local.preferences.*
-import com.example.domain.use_cases.remote.SignInUserUseCase
-import com.example.domain.use_cases.remote.SignUpUserUseCase
-import com.example.domain.use_cases.remote.DeleteChannelUseCase
-import com.example.domain.use_cases.remote.GetUserByIdUseCase
+import com.example.domain.use_cases.remote.*
 import org.koin.dsl.module
 
 val useCaseModule = module {
@@ -38,5 +35,9 @@ val useCaseModule = module {
     }
     single {
         SaveLanguageUseCase(get())
+    }
+
+    single {
+        UpdateUserUseCase(get(), get(), get())
     }
 }

@@ -118,7 +118,7 @@ private fun UserItem(
         ) {
             UserAvatar(user = user, modifier = Modifier.size(40.dp))
             Column() {
-                Text(text = user.id, fontSize = 16.sp, fontWeight = FontWeight.Bold)
+                Text(text = user.name, fontSize = 16.sp, fontWeight = FontWeight.Bold)
                 Text(text = convertDate(user.lastActive!!.time), fontSize = 12.sp)
             }
         }

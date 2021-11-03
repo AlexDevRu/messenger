@@ -8,15 +8,18 @@ import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
-import androidx.compose.material.Scaffold
-import androidx.compose.material.rememberScaffoldState
+import androidx.compose.foundation.text.KeyboardOptions
+import androidx.compose.foundation.verticalScroll
+import androidx.compose.material.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
 import coil.ImageLoader
 import coil.compose.LocalImageLoader
@@ -31,8 +34,9 @@ import com.example.chat.ui.base.composables.ProgressButton
 import com.example.chat.ui.base.composables.TextInputField
 import com.example.chat.ui.base.composables.Toolbar
 import com.example.chat.ui.models.Screen
+import com.example.chat.utils.transformations.PhoneVisualTransformation
+import com.example.domain.models.ChatUser
 import io.getstream.chat.android.client.ChatClient
-import io.getstream.chat.android.client.models.User
 import io.getstream.chat.android.compose.ui.common.avatar.UserAvatar
 import kotlinx.coroutines.launch
 import org.koin.androidx.compose.getViewModel
@@ -40,7 +44,8 @@ import org.koin.androidx.compose.getViewModel
 @Composable
 fun EditProfileScreen(
     onCancel: () -> Unit = {},
-    onSuccess: (User) -> Unit,
+    onSuccess: (ChatUser) -> Unit,
+    hasToolbar: Boolean = true,
     viewModel: EditProfileVM = getViewModel()
 ) {
 
@@ -86,10 +91,12 @@ fun EditProfileScreen(
     val scaffoldState = rememberScaffoldState()
     val snackbarCoroutineScope = rememberCoroutineScope()
 
+    val scrollState = rememberScrollState()
+
     Scaffold(
         scaffoldState = scaffoldState,
         topBar = {
-            Toolbar(Screen.EditProfile.displayText, onCancel)
+            if(hasToolbar) Toolbar(Screen.EditProfile.displayText, onCancel)
         }
     ) {
         LaunchedEffect(key1 = effect, block = {
@@ -111,24 +118,28 @@ fun EditProfileScreen(
         })
 
         Column(
-            modifier = Modifier.padding(16.dp),
-            verticalArrangement = Arrangement.spacedBy(16.dp),
+            modifier = Modifier
+                .padding(16.dp)
+                .verticalScroll(scrollState),
             horizontalAlignment = Alignment.CenterHorizontally,
         ) {
 
-            val avatarModifier = Modifier.size(150.dp).clickable {
-                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
-                    permissionsLauncher.launch(
-                        arrayOf(
-                            Manifest.permission.READ_EXTERNAL_STORAGE,
-                            Manifest.permission.WRITE_EXTERNAL_STORAGE,
-                            Manifest.permission.CAMERA
+            val avatarModifier = Modifier
+                .size(150.dp)
+                .clickable {
+                    if (state.applyChangedInProgress) return@clickable
+                    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
+                        permissionsLauncher.launch(
+                            arrayOf(
+                                Manifest.permission.READ_EXTERNAL_STORAGE,
+                                Manifest.permission.WRITE_EXTERNAL_STORAGE,
+                                Manifest.permission.CAMERA
+                            )
                         )
-                    )
-                } else {
-                    pickImage()
+                    } else {
+                        pickImage()
+                    }
                 }
-            }
 
 
             when(state.avatar) {
@@ -141,9 +152,7 @@ fun EditProfileScreen(
                 is Uri -> {
                     CompositionLocalProvider(LocalImageLoader provides imageLoader) {
                         Image(
-                            painter = rememberImagePainter(
-                                if(state.avatar.toString().isEmpty()) viewModel.defaultAvatar else state.avatar.toString()
-                            ),
+                            painter = rememberImagePainter(state.avatar.toString()),
                             contentDescription = "",
                             contentScale = ContentScale.Crop,
                             modifier = avatarModifier.clip(CircleShape)
@@ -152,16 +161,40 @@ fun EditProfileScreen(
                 }
             }
 
+            Spacer(modifier = Modifier.height(16.dp))
+
             TextInputField(
                 modifier = Modifier.fillMaxWidth(),
                 label = R.string.first_name,
+                maxCount = EditProfileVM.maxCharacters,
                 enabled = !state.applyChangedInProgress,
-                value = state.firstName,
-                errors = state.firstNameValidationError,
+                value = state.userName,
+                errors = state.userNameValidationError,
                 onValueChanged = {
                     viewModel.setEvent(EditProfileContract.Event.OnFirstNameChanged(it))
                 }
             )
+
+            TextInputField(
+                modifier = Modifier.fillMaxWidth(),
+                label = R.string.phone,
+                enabled = !state.applyChangedInProgress,
+                value = state.phone,
+                leadingIcon = {
+                    Text(
+                        text = "+375-",
+                        modifier = Modifier.padding(start = 16.dp),
+                        color = LocalContentColor.current.copy(LocalContentAlpha.current)
+                    )
+                },
+                onValueChanged = {
+                    viewModel.setEvent(EditProfileContract.Event.OnPhoneChanged(it))
+                },
+                keyboardOptions = KeyboardOptions.Default.copy(keyboardType = KeyboardType.Phone),
+                transformation = PhoneVisualTransformation()
+            )
+
+            Spacer(modifier = Modifier.height(16.dp))
 
             ProgressButton(
                 modifier = Modifier.fillMaxWidth(),
@@ -169,7 +202,9 @@ fun EditProfileScreen(
                     viewModel.setEvent(EditProfileContract.Event.OnApplyChanges)
                 },
                 loading = state.applyChangedInProgress,
-                enabled = state.firstNameValidationError.isNullOrEmpty() && state.firstName.isNotEmpty(),
+                enabled = state.userNameValidationError.isNullOrEmpty() &&
+                        state.phoneValidationError.isNullOrEmpty() &&
+                        state.userName.isNotEmpty(),
                 textRes = R.string.apply_changes
             )
         }

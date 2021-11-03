@@ -4,13 +4,13 @@ import androidx.annotation.StringRes
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.Icon
 import androidx.compose.material.MaterialTheme
 import androidx.compose.material.OutlinedTextField
 import androidx.compose.material.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.layoutId
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
@@ -22,7 +22,7 @@ import androidx.constraintlayout.compose.ConstraintSet
 import androidx.constraintlayout.compose.Dimension
 import com.example.chat.R
 import com.example.chat.ui.models.StringResWrapper
-import com.example.chat.ui.validation.InputValidationError
+import com.example.chat.ui.validation.InputValidator
 
 @Composable
 fun TextInputField(
@@ -32,19 +32,20 @@ fun TextInputField(
     trailingIcon: @Composable (() -> Unit)? = null,
     transformation: VisualTransformation = VisualTransformation.None,
     value: String = "",
-    errors: List<InputValidationError>? = null,
-    maxCount: Int = 20,
+    errors: List<InputValidator>? = null,
+    maxCount: Int? = null,
     enabled: Boolean = true,
-    onValueChanged: (String) -> Unit = {}
+    onValueChanged: (String) -> Unit = {},
+    keyboardOptions: KeyboardOptions = KeyboardOptions.Default,
+    maxLines: Int = 1
 ) {
 
     val labelStr = stringResource(label)
 
-    val errorStr: (InputValidationError) -> StringResWrapper = err@ {
+    val errorStr: (InputValidator) -> StringResWrapper = err@ {
         return@err when(it) {
-            is InputValidationError.LessCharactersError -> StringResWrapper(R.string.small_length_validation, arrayOf(labelStr, 4))
-            InputValidationError.NoNumbersError -> StringResWrapper(R.string.password_no_numbers_validation)
-            InputValidationError.SameCaseError -> StringResWrapper(R.string.password_same_case_validation)
+            is InputValidator.LessCharactersValidator -> it.getMessage(labelStr)
+            else -> it.getMessage()
         }
     }
 
@@ -60,7 +61,7 @@ fun TextInputField(
         constrain(errorsRef) {
             top.linkTo(fieldRef.bottom)
             start.linkTo(fieldRef.start)
-            end.linkTo(counterRef.start)
+            end.linkTo(if(maxCount != null) counterRef.start else parent.end)
             width = Dimension.fillToConstraints
         }
 
@@ -76,12 +77,15 @@ fun TextInputField(
         contentDescription = ""
     ) }
 
-    ConstraintLayout(constraintSet, modifier = modifier.padding( vertical = 8.dp)) {
+    ConstraintLayout(constraintSet, modifier = modifier.padding(vertical = 8.dp)) {
         OutlinedTextField(
             value = value,
+            maxLines = maxLines,
             onValueChange = {
-                if(it.length <= maxCount)
-                    onValueChanged(it)
+                if(maxCount != null && it.trim().length <= maxCount)
+                    onValueChanged(it.trim())
+                else
+                    onValueChanged(it.trim())
             },
             label = { Text(text = labelStr) },
             enabled = enabled,
@@ -93,6 +97,7 @@ fun TextInputField(
                 .fillMaxWidth()
                 .layoutId("field"),
             visualTransformation = transformation,
+            keyboardOptions = keyboardOptions,
         )
         Column(modifier = Modifier
             .padding(end = 10.dp)
@@ -108,9 +113,11 @@ fun TextInputField(
             }
         }
 
-        Text(
-            text = "${value.length} / $maxCount",
-            modifier = Modifier.layoutId("counter")
-        )
+        if(maxCount != null) {
+            Text(
+                text = "${value.length} / $maxCount",
+                modifier = Modifier.layoutId("counter")
+            )
+        }
     }
 }
