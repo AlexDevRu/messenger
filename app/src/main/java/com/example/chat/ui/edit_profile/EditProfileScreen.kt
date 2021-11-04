@@ -175,25 +175,6 @@ fun EditProfileScreen(
                 }
             )
 
-            TextInputField(
-                modifier = Modifier.fillMaxWidth(),
-                label = R.string.phone,
-                enabled = !state.applyChangedInProgress,
-                value = state.phone,
-                leadingIcon = {
-                    Text(
-                        text = "+375-",
-                        modifier = Modifier.padding(start = 16.dp),
-                        color = LocalContentColor.current.copy(LocalContentAlpha.current)
-                    )
-                },
-                onValueChanged = {
-                    viewModel.setEvent(EditProfileContract.Event.OnPhoneChanged(it))
-                },
-                keyboardOptions = KeyboardOptions.Default.copy(keyboardType = KeyboardType.Phone),
-                transformation = PhoneVisualTransformation()
-            )
-
             Spacer(modifier = Modifier.height(16.dp))
 
             ProgressButton(

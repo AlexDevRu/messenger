@@ -10,6 +10,13 @@
     <string name="please_wait">Please wait</string>
     <string name="sign_in">Sign In</string>
 
+    <string name="get_sms_code">Get sms code</string>
+    <string name="sms_code">sms code</string>
+    <string name="confirm">Confirm</string>
+    <string name="skip">Skip</string>
+    <string name="link_your_account_with_phone">Link your account with phone</string>
+    <string name="timeout_finished">Timeout finished</string>
+
     <string name="sign_in_error">Some error occurred</string>
 
     <string name="channels">Channels</string>

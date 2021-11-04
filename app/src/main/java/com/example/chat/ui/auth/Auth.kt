@@ -1,10 +1,15 @@
 package com.example.chat.ui.auth
 
 import android.util.Log
-import androidx.compose.foundation.*
+import androidx.compose.foundation.Image
 import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.text.KeyboardOptions
-import androidx.compose.material.*
+import androidx.compose.foundation.verticalScroll
+import androidx.compose.material.OutlinedButton
+import androidx.compose.material.Scaffold
+import androidx.compose.material.Text
+import androidx.compose.material.rememberScaffoldState
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -25,8 +30,7 @@ import com.example.chat.R
 import com.example.chat.ui.base.composables.CheckboxWithText
 import com.example.chat.ui.base.composables.ProgressButton
 import com.example.chat.ui.base.composables.TextInputField
-import com.example.chat.ui.main.MainScreen
-import com.example.chat.ui.models.Screen
+import com.example.chat.ui.phone.PhoneScreen
 import com.example.domain.exceptions.WrongCredentialsException
 import kotlinx.coroutines.launch
 import org.koin.androidx.compose.getViewModel
@@ -59,7 +63,12 @@ fun Auth(
             )
         }
         composable("new_user_settings") {
-            NewAccountSettingsScreen(onSuccess = navigateToMain)
+            NewAccountSettingsScreen(onSuccess = { navController.navigate("phone") } )
+        }
+        composable("phone") {
+            PhoneScreen(onSkip = navigateToMain, onSuccess = {
+                navigateToMain()
+            }, cancelLabel = R.string.skip)
         }
     }
 }
@@ -166,7 +175,7 @@ fun AuthScreen(
                 modifier = Modifier
                     .layoutId("passwordInput")
                     .fillMaxWidth(),
-                label = R.string.password,
+                label = R.string.phone,
                 transformation = PasswordVisualTransformation(),
                 value = authState.password.orEmpty(),
                 maxCount = AuthVM.maxCharachters,
@@ -174,7 +183,7 @@ fun AuthScreen(
                 onValueChanged = {
                     viewModel.setEvent(AuthContract.Event.OnValidatePassword(it))
                 },
-                keyboardOptions = KeyboardOptions.Default.copy(keyboardType = KeyboardType.Password)
+                keyboardOptions = KeyboardOptions.Default.copy(keyboardType = KeyboardType.Password),
             )
 
             CheckboxWithText(

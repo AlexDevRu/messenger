@@ -10,6 +10,13 @@
     <string name="please_wait">Ждите</string>
     <string name="sign_in">Войти</string>
 
+    <string name="get_sms_code">Получить смс-код</string>
+    <string name="sms_code">смс-код</string>
+    <string name="confirm">Подтвердить</string>
+    <string name="skip">Пропустить</string>
+    <string name="link_your_account_with_phone">Привяжите свой аккаунт к номеру телефона</string>
+    <string name="timeout_finished">Тайм-аут закончился</string>
+
     <string name="sign_in_error">Произошла ошибка</string>
 
     <string name="channels">Каналы</string>

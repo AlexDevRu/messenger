@@ -10,6 +10,8 @@ sealed class DrawerMenuItem(
     @DrawableRes val iconRes: Int
 ): Screen(route, displayTitle) {
     object Channels : DrawerMenuItem("Channels", R.string.channels, R.drawable.ic_channels)
+    object Phone: DrawerMenuItem("Link your phone", R.string.phone, R.drawable.ic_baseline_phone_24)
+    object Contacts: DrawerMenuItem("Contacts", R.string.contacts, R.drawable.ic_baseline_people_alt_24)
     object Settings : DrawerMenuItem("Settings",
         R.string.settings,
         R.drawable.ic_baseline_settings_24

@@ -12,7 +12,7 @@ val useCaseModule = module {
         SignUpUserUseCase(get(), get(), get())
     }
     single {
-        GetUserByIdUseCase(get())
+        GetUserByIdUseCase(get(), get())
     }
     single {
         DeleteChannelUseCase(get())
@@ -38,6 +38,18 @@ val useCaseModule = module {
     }
 
     single {
-        UpdateUserUseCase(get(), get(), get())
+        UpdateUserUseCase(get(), get())
+    }
+
+    single {
+        LogoutUseCase(get(), get(), get())
+    }
+
+    single {
+        SavePhoneUseCase(get())
+    }
+
+    single {
+        LinkPhoneToAccountUseCase(get())
     }
 }

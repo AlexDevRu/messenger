@@ -4,6 +4,8 @@ import com.example.chat.ui.chat.ChatVM
 import com.example.chat.ui.edit_profile.EditProfileVM
 import com.example.chat.ui.main.MainVM
 import com.example.chat.ui.auth.AuthVM
+import com.example.chat.ui.contacts.ContactsVM
+import com.example.chat.ui.phone.PhoneVM
 import com.example.chat.ui.settings.SettingsVM
 import com.example.chat.ui.users.UsersVM
 import com.getstream.sdk.chat.viewmodel.messages.MessageListViewModel
@@ -19,7 +21,7 @@ val viewModelModule = module {
         MainVM(get(), get(), get(), get())
     }
     viewModel {
-        EditProfileVM(androidApplication(), get())
+        EditProfileVM(get())
     }
     viewModel {
         UsersVM()
@@ -32,5 +34,11 @@ val viewModelModule = module {
     }
     viewModel {
         SettingsVM(get(), get(), get(), get())
+    }
+    viewModel {
+        ContactsVM(androidApplication())
+    }
+    viewModel {
+        PhoneVM(get())
     }
 }

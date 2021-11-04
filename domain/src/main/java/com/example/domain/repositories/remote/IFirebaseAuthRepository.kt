@@ -1,8 +1,9 @@
 package com.example.domain.repositories.remote
 
-import com.example.domain.common.Result
-
 interface IFirebaseAuthRepository {
-    suspend fun checkUserCredentials(email: String, password: String): Result<String>
-    suspend fun createNewUser(email: String, password: String): Result<String>
+    suspend fun checkUserCredentials(email: String, password: String): String
+    suspend fun createNewUser(email: String, password: String): String
+    suspend fun linkWithCredentials(verificationId: String, smsCode: String)
+    suspend fun linkWithCredentials(credentials: Any)
+    fun logout()
 }

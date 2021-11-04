@@ -17,6 +17,8 @@ import io.getstream.chat.android.client.models.User
 
 private val drawerScreens = listOf(
     DrawerMenuItem.Channels,
+    DrawerMenuItem.Phone,
+    DrawerMenuItem.Contacts,
     DrawerMenuItem.Settings,
     DrawerMenuItem.Logout
 )
