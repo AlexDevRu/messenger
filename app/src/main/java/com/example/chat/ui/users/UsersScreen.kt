@@ -67,7 +67,7 @@ fun UsersScreen(
                     snackbarCoroutineScope.launch {
                         scaffoldState.snackbarHostState
                             .showSnackbar(
-                                (effect as MainContract.Effect.ShowErrorSnackbar)
+                                (effect as UsersContract.Effect.SearchFailure)
                                     .message.orEmpty()
                             )
                     }
@@ -119,7 +119,7 @@ private fun UserItem(
             UserAvatar(user = user, modifier = Modifier.size(40.dp))
             Column() {
                 Text(text = user.name, fontSize = 16.sp, fontWeight = FontWeight.Bold)
-                Text(text = convertDate(user.lastActive!!.time), fontSize = 12.sp)
+                Text(text = convertDate(user.lastActive?.time ?: 0), fontSize = 12.sp)
             }
         }
     }
