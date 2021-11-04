@@ -43,7 +43,7 @@ fun ChannelsScreen(
             title = stringResource(R.string.app_name),
             trailingContent = {
                 CustomIconButton(
-                    iconRes = R.drawable.ic_baseline_search_24,
+                    iconRes = R.drawable.ic_baseline_person_search_24,
                     onClick = { navController.navigate(Screen.Users.route) }
                 )
             }
