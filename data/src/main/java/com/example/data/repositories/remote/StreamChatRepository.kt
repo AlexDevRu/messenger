@@ -4,6 +4,7 @@ import android.util.Log
 import com.example.data.mappers.toDataModel
 import com.example.data.mappers.toDomainModel
 import com.example.domain.common.Result
+import com.example.domain.exceptions.UserNotFoundException
 import com.example.domain.models.ChatUser
 import com.example.domain.repositories.remote.IStreamChatRepository
 import io.getstream.chat.android.client.ChatClient
@@ -20,52 +21,44 @@ class StreamChatRepository: IStreamChatRepository {
     private val client = ChatClient.instance()
     private val domain = ChatDomain.instance()
 
-    override suspend fun getUserById(userId: String): Result<ChatUser?> {
-        return try {
-            client.connectAnonymousUser().execute()
-            val request = QueryUsersRequest(
-                filter = Filters.eq("id", userId),
-                offset = 0,
-                limit = 1
-            )
-            val result = client.queryUsers(request).execute()
-            client.disconnect()
-            if(result.isSuccess) Result.Success(result.data().firstOrNull()?.toDomainModel()) else Result.Failure(Exception(result.error().message))
-        } catch (e: Exception) {
-            Result.Failure(e)
-        }
+    override suspend fun getUserById(userId: String): ChatUser {
+        client.connectAnonymousUser().execute()
+        val request = QueryUsersRequest(
+            filter = Filters.eq("id", userId),
+            offset = 0,
+            limit = 1
+        )
+        val result = client.queryUsers(request).execute()
+        client.disconnect()
+        return if(result.isSuccess) {
+            val user = result.data().firstOrNull()
+            user?.toDomainModel() ?: throw UserNotFoundException()
+        } else throw Exception(result.error().message)
     }
 
-    override suspend fun connectUser(userId: String, email: String): Result<Unit> {
-        return try {
-            val token = client.devToken(userId)
+    override suspend fun connectUser(userId: String, email: String): ChatUser {
+        val token = client.devToken(userId)
 
-            val user = ChatUser(userId, email)
+        val user = ChatUser(userId, email)
 
-            val result = client.connectUser(user.toDataModel(), token).execute()
+        val result = client.connectUser(user.toDataModel(), token).execute()
 
-            if(result.isSuccess) Result.Success(Unit) else Result.Failure(Exception(result.error().message))
-        } catch (e: Exception) {
-            Result.Failure(e)
-        }
+        if(result.isSuccess)
+            return result.data().user.toDomainModel()
+        else
+            throw Exception(result.error().message)
     }
 
-    override suspend fun connectUser(userId: String): Result<Unit> {
-        return try {
-            val token = client.devToken(userId)
+    override suspend fun connectUser(userId: String): ChatUser {
+        val token = client.devToken(userId)
 
-            val userResult = getUserById(userId)
+        val user = getUserById(userId)
 
-            when(userResult) {
-                is Result.Success -> {
-                    val result = client.connectUser(userResult.value!!.toDataModel(), token).execute()
-                    if(result.isSuccess) Result.Success(Unit) else Result.Failure(Exception(result.error().message))
-                }
-                is Result.Failure -> throw userResult.throwable
-            }
-        } catch(e: Exception) {
-            Result.Failure(e)
-        }
+        val result = client.connectUser(user.toDataModel(), token).execute()
+        if(result.isSuccess)
+            return result.data().user.toDomainModel()
+        else
+            throw Exception(result.error().message)
     }
 
     override fun deleteChannel(cid: String) {
@@ -97,5 +90,9 @@ class StreamChatRepository: IStreamChatRepository {
             Log.d(TAG, "user update error ${result.error().message}")
             throw Exception(result.error().message)
         }
+    }
+
+    override fun logout() {
+        client.disconnect()
     }
 }
