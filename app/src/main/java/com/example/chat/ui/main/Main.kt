@@ -10,11 +10,13 @@ import androidx.navigation.compose.rememberNavController
 import com.example.chat.R
 import com.example.chat.ui.base.composables.CustomAlertDialog
 import com.example.chat.ui.chat.ChannelScreen
+import com.example.chat.ui.contacts.ContactsScreen
 import com.example.chat.ui.edit_profile.EditProfileScreen
 import com.example.chat.ui.main.drawer.Drawer
 import com.example.chat.ui.models.DrawerMenuItem
 import com.example.chat.ui.models.Screen
 import com.example.chat.ui.models.channelCidArgName
+import com.example.chat.ui.phone.PhoneScreen
 import com.example.chat.ui.settings.SettingsScreen
 import com.example.chat.ui.settings.SettingsVM
 import com.example.chat.ui.users.UsersScreen
@@ -101,6 +103,18 @@ fun MainScreen(
                         loading = mainState.loading
                     )
                     activeRoute = DrawerMenuItem.Channels.route
+                }
+                composable(DrawerMenuItem.Phone.route) {
+                    PhoneScreen(onSkip = { navController.navigateUp() }, onSuccess = {
+                        navController.navigateUp()
+                    }, cancelLabel = R.string.cancel)
+                    activeRoute = DrawerMenuItem.Phone.route
+                }
+                composable(DrawerMenuItem.Contacts.route) {
+                    ContactsScreen(
+                        onBackPressed = { navController.navigateUp() }
+                    )
+                    activeRoute = DrawerMenuItem.Contacts.route
                 }
                 composable(DrawerMenuItem.Settings.route) {
                     SettingsScreen(onBackPressed = { navController.navigateUp() }, settingsVM)

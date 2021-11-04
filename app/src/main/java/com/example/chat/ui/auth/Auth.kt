@@ -66,9 +66,7 @@ fun Auth(
             NewAccountSettingsScreen(onSuccess = { navController.navigate("phone") } )
         }
         composable("phone") {
-            PhoneScreen(onSkip = navigateToMain, onSuccess = {
-                navigateToMain()
-            }, cancelLabel = R.string.skip)
+            PhoneScreen(onSkip = navigateToMain, onSuccess = navigateToMain, cancelLabel = R.string.skip)
         }
     }
 }
