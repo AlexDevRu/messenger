@@ -18,12 +18,12 @@ import org.koin.androidx.compose.get
 fun Root(settingsVM: SettingsVM) {
     val navController = rememberNavController()
 
-    /*val getUserUseCase = get<GetUserUseCase>()
-    val savedUserId = getUserUseCase()*/
+    val getUserUseCase = get<GetUserUseCase>()
+    val savedUserId = getUserUseCase()
 
-    val user = Firebase.auth.currentUser
+    //val user = Firebase.auth.currentUser
 
-    val startDestination = if(user == null) Screen.Auth.route else Screen.Main.route
+    val startDestination = if(savedUserId == null) Screen.Auth.route else Screen.Main.route
 
     NavHost(navController = navController, startDestination = startDestination) {
         composable(Screen.Auth.route) {

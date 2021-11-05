@@ -56,7 +56,7 @@ class AuthVM(
             val result = if(isSignIn) {
                 signInUserUseCase(email, currentState.password!!, currentState.rememberMe)
             } else {
-                signUpUserUseCase(email, currentState.password!!, currentState.rememberMe)
+                signUpUserUseCase(email, currentState.password!!, "", currentState.rememberMe)
             }
 
             when(result) {

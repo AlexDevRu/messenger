@@ -22,6 +22,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
 import com.example.chat.R
+import com.example.chat.ui.base.composables.BackHandler
 import com.example.chat.ui.main.MainContract
 import com.example.chat.ui.models.Screen
 import io.getstream.chat.android.client.models.User
@@ -48,7 +49,7 @@ fun UsersScreen(
         scaffoldState = scaffoldState,
         topBar = {
             UsersToolbar(
-                query = state.query.orEmpty(),
+                query = state.query,
                 onQueryChange = {
                     viewModel.setEvent(UsersContract.Event.OnQueryChanged(it))
                 },
@@ -136,6 +137,13 @@ private fun UsersToolbar(
         mutableStateOf(false)
     }
 
+    val onBack = {
+        if(searchExpanded) searchExpanded = false
+        else onBackPressed()
+    }
+
+    BackHandler(onBack = onBack)
+
     TopAppBar(
         modifier = Modifier.fillMaxWidth(),
         backgroundColor = MaterialTheme.colors.surface
@@ -150,7 +158,7 @@ private fun UsersToolbar(
 
                 BackButton(
                     imageVector = ImageVector.vectorResource(R.drawable.ic_baseline_arrow_back_24),
-                    onBackPressed = onBackPressed
+                    onBackPressed = onBack
                 )
 
                 if(!searchExpanded) {

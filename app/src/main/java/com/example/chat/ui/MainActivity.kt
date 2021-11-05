@@ -11,6 +11,10 @@ import com.example.chat.ui.settings.SettingsVM
 import com.example.chat.ui.theme.ComposeTheme
 import com.example.domain.use_cases.local.preferences.GetLanguageUseCase
 import io.getstream.chat.android.compose.ui.theme.ChatTheme
+import io.getstream.chat.android.offline.ChatDomain
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.GlobalScope
+import kotlinx.coroutines.launch
 import org.koin.android.ext.android.inject
 import org.koin.androidx.viewmodel.ext.android.viewModel
 import java.util.*
@@ -23,6 +27,15 @@ class MainActivity: AppCompatActivity() {
         super.onCreate(savedInstanceState)
 
         setConfig()
+
+        /*GlobalScope.launch(Dispatchers.IO) {
+            val users = ChatDomain.instance().searchUsersByName("u", 0, 10, false).execute()
+            if(users.isSuccess) {
+                Log.d("asd", "users ${users.data()}")
+            } else {
+                Log.d("asd", "users ${users.error().message}")
+            }
+        }*/
 
         val settingsVM by viewModel<SettingsVM>()
 

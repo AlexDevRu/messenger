@@ -1,11 +1,18 @@
 package com.example.chat.ui.edit_profile
 
+import android.util.Log
 import androidx.lifecycle.viewModelScope
 import com.example.chat.ui.base.BaseViewModel
 import com.example.chat.ui.validation.InputValidator
+import com.example.data.mappers.toDomainModel
+import com.example.data.models.getAvatarOrDefault
 import com.example.domain.common.Result
 import com.example.domain.use_cases.remote.UpdateUserUseCase
+import com.google.firebase.auth.ktx.auth
+import com.google.firebase.ktx.Firebase
 import io.getstream.chat.android.client.ChatClient
+import io.getstream.chat.android.client.api.models.QueryUsersRequest
+import io.getstream.chat.android.client.models.Filters
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 
@@ -27,18 +34,33 @@ class EditProfileVM(
     }
 
     private fun loadCurrentUser() {
-
+        viewModelScope.launch(Dispatchers.IO) {
+            val request = QueryUsersRequest(
+                filter = Filters.autocomplete("id", Firebase.auth.currentUser!!.uid),
+                offset = 0,
+                limit = 1,
+            )
+            val userResult = client.queryUsers(request).execute()
+            if(userResult.isSuccess) {
+                val user = userResult.data().first()
+                Log.e("asd", "CURRENT USER LOADED $user")
+                user.name = Firebase.auth.currentUser?.displayName.orEmpty()
+                user.image = Firebase.auth.currentUser!!.toDomainModel().getAvatarOrDefault()
+                setState { copy(
+                    userName = user.name,
+                    avatar = user.image
+                ) }
+                Log.e("asd", "CURRENT USER AVTAR ${currentState.avatar}")
+            }
+        }
     }
 
     override fun createInitialState(): EditProfileContract.State {
-        val currentUser = ChatClient.instance().getCurrentUser()!!
         return EditProfileContract.State(
-            userName = currentUser.name,
+            userName = Firebase.auth.currentUser?.displayName.orEmpty(),
             userNameValidationError = null,
-            phone = currentUser.extraData["phone"]?.toString() ?: "",
-            phoneValidationError = null,
             applyChangedInProgress = false,
-            avatar = currentUser.image
+            avatar = Firebase.auth.currentUser?.photoUrl?.path ?: ""
         )
     }
 
@@ -46,17 +68,15 @@ class EditProfileVM(
         when(event) {
             EditProfileContract.Event.OnApplyChanges -> applyChanges()
             is EditProfileContract.Event.OnFirstNameChanged -> validateFirstName(event.firstName)
-            is EditProfileContract.Event.OnPhoneChanged -> setState { copy(phone = event.phone) }
             is EditProfileContract.Event.OnImageUpload -> uploadImageBitmap(event.data)
         }
     }
 
     private fun applyChanges() {
-        val currentUser = client.getCurrentUser()!!
         setState { copy(applyChangedInProgress = true) }
 
         viewModelScope.launch(Dispatchers.IO) {
-            val result = updateUserUseCase(currentUser.id, currentState.userName, currentState.phone, currentState.avatar)
+            val result = updateUserUseCase(currentState.userName, currentState.avatar)
 
             when(result) {
                 is Result.Success -> setEffect { EditProfileContract.Effect.UserUpdatedSuccessfully(result.value) }

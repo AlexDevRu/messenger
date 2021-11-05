@@ -15,7 +15,7 @@ object MainContract {
     }
 
     data class State(
-        val user: User? = null,
+        val user: ChatUser? = null,
         val loading: Boolean = false,
     ): UiState
 

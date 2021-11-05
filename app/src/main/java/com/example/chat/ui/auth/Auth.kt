@@ -173,7 +173,7 @@ fun AuthScreen(
                 modifier = Modifier
                     .layoutId("passwordInput")
                     .fillMaxWidth(),
-                label = R.string.phone,
+                label = R.string.password,
                 transformation = PasswordVisualTransformation(),
                 value = authState.password.orEmpty(),
                 maxCount = AuthVM.maxCharachters,

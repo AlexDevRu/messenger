@@ -7,13 +7,13 @@ import io.getstream.chat.android.client.models.User
 
 object UsersContract {
     sealed class Event : UiEvent {
-        data class OnQueryChanged(val query: String?): Event()
+        data class OnQueryChanged(val query: String): Event()
         data class OnUserClick(val userId: String): Event()
     }
 
     data class State(
         val users: List<User>? = null,
-        val query: String? = null,
+        val query: String = "",
         val loading: Boolean = false
     ): UiState
 

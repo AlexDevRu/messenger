@@ -4,11 +4,15 @@ import android.util.Log
 import androidx.lifecycle.viewModelScope
 import com.example.chat.ui.base.BaseViewModel
 import com.example.data.mappers.toDataModel
+import com.example.data.mappers.toDomainModel
+import com.example.data.models.getAvatarOrDefault
 import com.example.domain.common.Result
 import com.example.domain.use_cases.local.preferences.GetUserUseCase
 import com.example.domain.use_cases.remote.DeleteChannelUseCase
 import com.example.domain.use_cases.remote.LogoutUseCase
 import com.example.domain.use_cases.remote.SignInUserUseCase
+import com.google.firebase.auth.ktx.auth
+import com.google.firebase.ktx.Firebase
 import io.getstream.chat.android.client.ChatClient
 import io.getstream.chat.android.offline.ChatDomain
 import kotlinx.coroutines.Dispatchers
@@ -31,15 +35,15 @@ class MainVM(
 
     private fun getUser() {
 
-        val user = ChatDomain.instance().user.value
+        val user = ChatClient.instance().getCurrentUser()
+        Log.d("asd", "current user ${user}")
 
         if(user == null) {
             val userId = getUserUseCase()
+            Log.d("asd", "current user userId ${userId}")
             if(userId != null) {
                 fetchUser(userId)
             }
-        } else {
-            setState { copy(user = user) }
         }
 
     }
@@ -49,7 +53,14 @@ class MainVM(
             setState { copy(loading = true) }
             val result = signInUserUseCase(userId)
             when(result) {
-                is Result.Success -> setState { copy(user = ChatClient.instance().getCurrentUser()) }
+                is Result.Success -> {
+                    Log.e("asd", "current user fetched ${result.value}")
+                    val user = result.value
+                    user?.email = Firebase.auth.currentUser?.email!!
+                    user?.userName = Firebase.auth.currentUser?.displayName!!
+                    user?.avatar = Firebase.auth.currentUser!!.toDomainModel().getAvatarOrDefault()
+                    setState { copy(user = user) }
+                }
                 is Result.Failure -> setEffect { MainContract.Effect.ShowErrorSnackbar(result.throwable.message) }
             }
             setState { copy(loading = false) }
@@ -62,9 +73,8 @@ class MainVM(
     }
 
     override fun createInitialState(): MainContract.State {
-        Log.d("asd", "CREATE INITIAL STATE")
         return MainContract.State(
-            user = null,
+            user = Firebase.auth.currentUser?.toDomainModel(),
             loading = false
         )
     }
@@ -72,7 +82,7 @@ class MainVM(
     override fun handleEvent(event: MainContract.Event) {
         when(event) {
             is MainContract.Event.OnUserLoad -> getUser()
-            is MainContract.Event.OnUserUpdated -> setState { copy(user = event.user?.toDataModel()) }
+            is MainContract.Event.OnUserUpdated -> setState { copy(user = Firebase.auth.currentUser?.toDomainModel()) }
             MainContract.Event.OnLogout -> logout()
         }
     }

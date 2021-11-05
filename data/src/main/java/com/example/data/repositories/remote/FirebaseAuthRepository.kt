@@ -1,10 +1,13 @@
 package com.example.data.repositories.remote
 
+import android.net.Uri
 import android.util.Log
 import com.example.domain.exceptions.UserNotFoundException
+import com.example.domain.models.ChatUser
 import com.example.domain.repositories.remote.IFirebaseAuthRepository
 import com.google.firebase.auth.PhoneAuthCredential
 import com.google.firebase.auth.PhoneAuthProvider
+import com.google.firebase.auth.UserProfileChangeRequest
 import com.google.firebase.auth.ktx.auth
 import com.google.firebase.ktx.Firebase
 import kotlinx.coroutines.tasks.await
@@ -31,6 +34,24 @@ class FirebaseAuthRepository: IFirebaseAuthRepository {
         } else {
             Firebase.auth.currentUser?.linkWithCredential(credential)?.await()
         }
+    }
+
+    override suspend fun updateCurrentUser(name: String, photoUrl: String): ChatUser {
+        auth.currentUser!!.updateProfile(
+            UserProfileChangeRequest.Builder().apply {
+                displayName = name
+                photoUri = Uri.parse(photoUrl)
+            }.build()
+        ).await()
+
+        val user = Firebase.auth.currentUser!!
+        return ChatUser(
+            id = user.uid,
+            email = user.email!!,
+            userName = user.displayName.orEmpty(),
+            phone = user.phoneNumber,
+            avatar = user.photoUrl?.toString() ?: ""
+        )
     }
 
     override suspend fun linkWithCredentials(credentials: Any) {

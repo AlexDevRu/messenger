@@ -6,10 +6,10 @@ import org.koin.dsl.module
 
 val useCaseModule = module {
     single {
-        SignInUserUseCase(get(), get(), get())
+        SignInUserUseCase(get(), get(), get(), get())
     }
     single {
-        SignUpUserUseCase(get(), get(), get())
+        SignUpUserUseCase(get(), get(), get(), get())
     }
     single {
         GetUserByIdUseCase(get(), get())
@@ -38,7 +38,7 @@ val useCaseModule = module {
     }
 
     single {
-        UpdateUserUseCase(get(), get())
+        UpdateUserUseCase(get(), get(), get(), get())
     }
 
     single {
@@ -46,10 +46,10 @@ val useCaseModule = module {
     }
 
     single {
-        SavePhoneUseCase(get())
+        LinkPhoneToAccountUseCase(get(), get())
     }
 
     single {
-        LinkPhoneToAccountUseCase(get())
+        GetUsersByQueryUseCase(get(), get(), get())
     }
 }

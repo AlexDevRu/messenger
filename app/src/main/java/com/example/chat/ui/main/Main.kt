@@ -20,6 +20,7 @@ import com.example.chat.ui.phone.PhoneScreen
 import com.example.chat.ui.settings.SettingsScreen
 import com.example.chat.ui.settings.SettingsVM
 import com.example.chat.ui.users.UsersScreen
+import com.example.data.mappers.toDataModel
 import kotlinx.coroutines.launch
 import org.koin.androidx.compose.getViewModel
 
@@ -87,6 +88,7 @@ fun MainScreen(
                         navController.navigate(Screen.EditProfile.route)
                     },
                     currentUser = mainState.user,
+                    userIsLoading = mainState.loading,
                     activeRoute = activeRoute.orEmpty()
                 )
             }
@@ -99,7 +101,7 @@ fun MainScreen(
                     ChannelsScreen(
                         navController = navController,
                         openDrawer = { openDrawer() },
-                        currentUser = mainState.user,
+                        currentUser = mainState.user?.toDataModel(),
                         loading = mainState.loading
                     )
                     activeRoute = DrawerMenuItem.Channels.route

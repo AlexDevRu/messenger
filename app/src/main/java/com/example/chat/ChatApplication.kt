@@ -2,6 +2,7 @@ package com.example.chat
 
 import android.app.Application
 import com.example.chat.di.dataModule
+import com.example.chat.di.databaseModule
 import com.example.chat.di.useCaseModule
 import com.example.chat.di.viewModelModule
 import io.getstream.chat.android.client.ChatClient
@@ -34,7 +35,7 @@ class ChatApplication: Application() {
 
         startKoin {
             androidContext(this@ChatApplication)
-            modules(dataModule, useCaseModule, viewModelModule)
+            modules(dataModule, useCaseModule, viewModelModule, databaseModule)
         }
     }
 }

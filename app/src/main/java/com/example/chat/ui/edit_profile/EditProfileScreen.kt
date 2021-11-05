@@ -10,7 +10,6 @@ import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
-import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.*
 import androidx.compose.runtime.*
@@ -19,11 +18,12 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
-import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
 import coil.ImageLoader
 import coil.compose.LocalImageLoader
 import coil.compose.rememberImagePainter
+import coil.decode.GifDecoder
+import coil.decode.ImageDecoderDecoder
 import coil.decode.SvgDecoder
 import com.canhub.cropper.CropImageContract
 import com.canhub.cropper.CropImageContractOptions
@@ -34,9 +34,10 @@ import com.example.chat.ui.base.composables.ProgressButton
 import com.example.chat.ui.base.composables.TextInputField
 import com.example.chat.ui.base.composables.Toolbar
 import com.example.chat.ui.models.Screen
-import com.example.chat.utils.transformations.PhoneVisualTransformation
+import com.example.data.mappers.toDataModel
 import com.example.domain.models.ChatUser
-import io.getstream.chat.android.client.ChatClient
+import com.google.firebase.auth.ktx.auth
+import com.google.firebase.ktx.Firebase
 import io.getstream.chat.android.compose.ui.common.avatar.UserAvatar
 import kotlinx.coroutines.launch
 import org.koin.androidx.compose.getViewModel
@@ -46,12 +47,19 @@ fun EditProfileScreen(
     onCancel: () -> Unit = {},
     onSuccess: (ChatUser) -> Unit,
     hasToolbar: Boolean = true,
+    //onImageUpload: (Uri) -> Unit,
+    //applyChangesInProgress: Boolean,
     viewModel: EditProfileVM = getViewModel()
 ) {
 
     val imageLoader = ImageLoader.Builder(LocalContext.current)
         .componentRegistry {
             add (SvgDecoder( LocalContext.current) )
+            if (Build.VERSION.SDK_INT >= 28) {
+                add(ImageDecoderDecoder(LocalContext.current))
+            } else {
+                add(GifDecoder())
+            }
         }
         .build()
 
@@ -141,11 +149,10 @@ fun EditProfileScreen(
                     }
                 }
 
-
-            when(state.avatar) {
+            /*when(state.avatar) {
                 is String -> {
                     UserAvatar(
-                        user = ChatClient.instance().getCurrentUser()!!,
+                        user = Firebase.auth.currentUser!!.toDataModel(),
                         modifier = avatarModifier
                     )
                 }
@@ -159,6 +166,18 @@ fun EditProfileScreen(
                         )
                     }
                 }
+            }*/
+
+            CompositionLocalProvider(LocalImageLoader provides imageLoader) {
+                Image(
+                    painter = rememberImagePainter(state.avatar.toString(), builder = {
+                        placeholder(R.drawable.loading_buffering)
+                        error(R.drawable.user_placeholder)
+                    }),
+                    contentDescription = "",
+                    contentScale = ContentScale.Crop,
+                    modifier = avatarModifier.clip(CircleShape)
+                )
             }
 
             Spacer(modifier = Modifier.height(16.dp))
@@ -184,7 +203,6 @@ fun EditProfileScreen(
                 },
                 loading = state.applyChangedInProgress,
                 enabled = state.userNameValidationError.isNullOrEmpty() &&
-                        state.phoneValidationError.isNullOrEmpty() &&
                         state.userName.isNotEmpty(),
                 textRes = R.string.apply_changes
             )

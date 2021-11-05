@@ -43,7 +43,7 @@ fun InputPhoneNumber(
                 leadingIcon = {
                     Text(
                         text = "+375-",
-                        modifier = Modifier.padding(start = 16.dp, bottom = 8.dp),
+                        modifier = Modifier.padding(start = 16.dp, bottom = 3.dp),
                         color = LocalContentColor.current.copy(LocalContentAlpha.current)
                     )
                 },

@@ -1,28 +1,37 @@
 package com.example.chat.ui.users
 
 import android.util.Log
+import androidx.lifecycle.viewModelScope
 import com.example.chat.ui.base.BaseViewModel
+import com.example.data.mappers.toDataModel
+import com.example.domain.common.Result
+import com.example.domain.use_cases.remote.GetUsersByQueryUseCase
 import io.getstream.chat.android.client.ChatClient
-import io.getstream.chat.android.client.api.models.QueryUsersRequest
-import io.getstream.chat.android.client.models.Filters
-import io.getstream.chat.android.offline.ChatDomain
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.Job
+import kotlinx.coroutines.delay
+import kotlinx.coroutines.launch
 
-class UsersVM: BaseViewModel<UsersContract.Event, UsersContract.State, UsersContract.Effect>() {
+class UsersVM(
+    private val getUsersByQueryUseCase: GetUsersByQueryUseCase
+): BaseViewModel<UsersContract.Event, UsersContract.State, UsersContract.Effect>() {
 
     companion object {
         private const val TAG = "UsersVM"
+        private const val SEARCH_DELAY = 1500L
     }
 
     private val client = ChatClient.instance()
+    private var searchJob: Job? = null
 
     init {
-        queryAllUsers()
+        getUsersByQuery(false)
     }
 
     override fun createInitialState(): UsersContract.State {
         return UsersContract.State(
             users = null,
-            query = null,
+            query = "",
             loading = false
         )
     }
@@ -31,45 +40,28 @@ class UsersVM: BaseViewModel<UsersContract.Event, UsersContract.State, UsersCont
         when(event) {
             is UsersContract.Event.OnQueryChanged -> {
                 setState { copy(query = event.query) }
-                if(event.query.isNullOrEmpty()) queryAllUsers() else searchUser(event.query)
+                getUsersByQuery()
             }
             is UsersContract.Event.OnUserClick -> createNewChannel(event.userId)
         }
     }
 
-    private fun queryAllUsers() {
-        val request = QueryUsersRequest(
-            filter = Filters.ne("id", client.getCurrentUser()!!.id),
-            offset = 0,
-            limit = 100
-        )
-        getUsersByRequest(request)
-    }
-
-    private fun searchUser(query: String) {
-        val filters = Filters.and(
-            Filters.autocomplete("id", query),
-            Filters.ne("id", client.getCurrentUser()!!.id)
-        )
-        val request = QueryUsersRequest(
-            filter = filters,
-            offset = 0,
-            limit = 100
-        )
-        getUsersByRequest(request)
-    }
-
-    private fun getUsersByRequest(request: QueryUsersRequest) {
-        setState { copy(loading = true) }
-        client.queryUsers(request).enqueue { result ->
-            if (result.isSuccess) {
-                val users = result.data()
-                setState { copy(users = users) }
-            } else {
-                Log.e(TAG, result.error().message.toString())
-                setEffect { UsersContract.Effect.SearchFailure(result.error().message) }
+    private fun getUsersByQuery(withDelay: Boolean = true) {
+        searchJob?.cancel()
+        searchJob = viewModelScope.launch(Dispatchers.IO) {
+            if(withDelay) delay(SEARCH_DELAY)
+            setState { copy(loading = true) }
+            val result = getUsersByQueryUseCase(currentState.query)
+            when(result) {
+                is Result.Success -> {
+                    Log.d(TAG, "users ${result.value}")
+                    setState { copy(loading = false, users = result.value.map { it.toDataModel() }) }
+                }
+                is Result.Failure -> {
+                    setEffect { UsersContract.Effect.SearchFailure(result.throwable.message) }
+                    setState { copy(loading = false) }
+                }
             }
-            setState { copy(loading = false) }
         }
     }
 
@@ -84,7 +76,5 @@ class UsersVM: BaseViewModel<UsersContract.Event, UsersContract.State, UsersCont
                 Log.e(TAG, result.error().message.toString())
             }
         }
-
-        ///ChatDomain.instance().
     }
 }

@@ -1,8 +1,7 @@
 package com.example.domain.repositories.remote
 
-import com.example.domain.common.Result
-
 interface IFirestoreRepository {
-    suspend fun savePhoneByUserId(userId: String, phone: String)
+    suspend fun savePhoneByUserId(phoneNumber: String)
     suspend fun getPhoneByUserId(userId: String):String
+    suspend fun getPhonesByUserIds(userIds: List<String>): Map<String, String>
 }

@@ -54,13 +54,13 @@ class PhoneVM(
 
     private fun linkWithCredentials() {
         linkWithCredentials {
-            linkPhoneToAccountUseCase(verificationId!!, currentState.smsCode)
+            linkPhoneToAccountUseCase(currentState.phone, verificationId!!, currentState.smsCode)
         }
     }
 
     private fun linkWithCredentials(credential: PhoneAuthCredential) {
         linkWithCredentials {
-            linkPhoneToAccountUseCase(credential)
+            linkPhoneToAccountUseCase(currentState.phone, credential)
         }
     }
 

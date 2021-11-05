@@ -1,5 +1,6 @@
 package com.example.chat.ui.main.drawer
 
+import android.util.Log
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -13,6 +14,9 @@ import androidx.constraintlayout.compose.ConstraintSet
 import com.example.chat.R
 import com.example.chat.ui.base.composables.CustomIconButton
 import com.example.chat.ui.models.DrawerMenuItem
+import com.example.domain.models.ChatUser
+import com.google.firebase.auth.ktx.auth
+import com.google.firebase.ktx.Firebase
 import io.getstream.chat.android.client.models.User
 
 private val drawerScreens = listOf(
@@ -29,8 +33,12 @@ fun Drawer(
     onDestinationClick: (route: String) -> Unit,
     onEditProfileClick: () -> Unit = {},
     activeRoute: String,
-    currentUser: User? = null
+    currentUser: ChatUser? = null,
+    userIsLoading: Boolean
 ) {
+
+    //Log.e("asd", "PHOTO URL $photoUrl")
+
     val constraintSet = ConstraintSet {
         val userAvatarRef = createRefFor("userAvatar")
         val editProfileButtonRef = createRefFor("editProfileButton")
@@ -60,7 +68,8 @@ fun Drawer(
     ) {
         DrawerAvatar(
             modifier = Modifier.layoutId("userAvatar"),
-            currentUser = currentUser
+            currentUser = currentUser,
+            loading = userIsLoading
         )
 
         CustomIconButton(

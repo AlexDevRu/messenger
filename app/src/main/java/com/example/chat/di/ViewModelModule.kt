@@ -24,7 +24,7 @@ val viewModelModule = module {
         EditProfileVM(get())
     }
     viewModel {
-        UsersVM()
+        UsersVM(get())
     }
     viewModel {
         ChatVM(get())

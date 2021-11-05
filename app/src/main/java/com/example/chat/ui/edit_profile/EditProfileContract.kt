@@ -11,21 +11,19 @@ object EditProfileContract {
     sealed class Event: UiEvent {
         object OnApplyChanges: Event()
         data class OnFirstNameChanged(val firstName: String): Event()
-        data class OnPhoneChanged(val phone: String): Event()
         data class OnImageUpload(val data: Any): Event()
     }
 
     data class State(
         val userName: String,
         val userNameValidationError: List<InputValidator>?,
-        val phone: String,
-        val phoneValidationError: List<InputValidator>?,
         val applyChangedInProgress: Boolean,
-        val avatar: Any
+        val avatar: Any,
     ): UiState
 
     sealed class Effect: UiEffect {
         data class UserUpdatedSuccessfully(val user: ChatUser): Effect()
         data class UserUpdateFailure(val message: String?): Effect()
+        data class SetUserData(val user: User): Effect()
     }
 }
