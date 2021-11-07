@@ -5,5 +5,5 @@ data class ChatUser(
     var email: String = "",
     var userName: String = "",
     var phone: String? = null,
-    var avatar: String? = null,
+    var avatar: Any? = null,
 )

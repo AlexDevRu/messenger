@@ -39,7 +39,7 @@ fun InputPhoneNumber(
             TextInputField(
                 modifier = Modifier.fillMaxWidth(),
                 label = R.string.phone,
-                value = state.phone,
+                textFieldVM = viewModel.phoneNumberVM,
                 leadingIcon = {
                     Text(
                         text = "+375-",
@@ -47,9 +47,7 @@ fun InputPhoneNumber(
                         color = LocalContentColor.current.copy(LocalContentAlpha.current)
                     )
                 },
-                onValueChanged = {
-                    viewModel.setEvent(PhoneContract.Event.OnPhoneChanged(it))
-                },
+                enabled = !state.smsIsSending,
                 keyboardOptions = KeyboardOptions.Default.copy(keyboardType = KeyboardType.Phone),
                 transformation = PhoneVisualTransformation()
             )

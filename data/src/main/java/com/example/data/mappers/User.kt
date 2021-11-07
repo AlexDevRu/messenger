@@ -12,17 +12,19 @@ fun User.toDomainModel(): ChatUser {
     return ChatUser(
         id = id,
         email = extraData["email"].toString(),
-        userName = name,
-        avatar = image
+        userName = extraData["name"].toString(),
+        avatar = extraData["image"].toString()
     )
 }
 
 fun ChatUser.toDataModel(): User {
-    return User(id = id, extraData = mutableMapOf(
-        "email" to email,
-        "name" to userName,
-        "image" to avatar.orEmpty()
-    ))
+    val user = User(id = id)
+    user.name = userName
+    user.image = if(avatar == null) "" else avatar.toString()
+    user.extraData["image"] = if(avatar == null) "" else avatar.toString()
+    user.extraData["name"] = userName
+    user.extraData["email"] = email
+    return user
 }
 
 fun ChatUserWithMetadata.toDomainModel(): ChatUser {
@@ -38,7 +40,7 @@ fun ChatUserWithMetadata.toDomainModel(): ChatUser {
 fun ChatUser.toEntity(): ChatUserWithMetadata {
     return ChatUserWithMetadata(
         user = ChatUserEntity(id = id, userName = userName, email = email),
-        image = ChatUserImageEntity(image = avatar, userId = id),
+        image = ChatUserImageEntity(image = if(avatar == null) "" else avatar.toString(), userId = id),
         phone = ChatUserPhoneEntity(phone = phone, userId = id)
     )
 }

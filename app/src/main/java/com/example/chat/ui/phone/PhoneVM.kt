@@ -3,6 +3,7 @@ package com.example.chat.ui.phone
 import android.app.Activity
 import android.util.Log
 import androidx.lifecycle.viewModelScope
+import com.example.chat.ui.auth.TextFieldVM
 import com.example.chat.ui.base.BaseViewModel
 import com.example.domain.common.Result
 import com.example.domain.use_cases.remote.LinkPhoneToAccountUseCase
@@ -27,11 +28,15 @@ class PhoneVM(
     private var verificationId: String? = null
     private var token: PhoneAuthProvider.ForceResendingToken? = null
 
+    val phoneNumberVM = TextFieldVM()
+    val smsCodeVM = TextFieldVM(maxCount = 6)
+
+    init {
+        phoneNumberVM.onValueChanged(Firebase.auth.currentUser?.phoneNumber?.drop(4) ?: "")
+    }
+
     override fun createInitialState(): PhoneContract.State {
         return PhoneContract.State(
-            phone = Firebase.auth.currentUser?.phoneNumber?.drop(4) ?: "",
-            phoneValidationError = null,
-            smsCode = "",
             smsIsSending = false,
             applyChangedInProgress = false
         )
@@ -54,13 +59,13 @@ class PhoneVM(
 
     private fun linkWithCredentials() {
         linkWithCredentials {
-            linkPhoneToAccountUseCase(currentState.phone, verificationId!!, currentState.smsCode)
+            linkPhoneToAccountUseCase(phoneNumberVM.value, verificationId!!, smsCodeVM.value)
         }
     }
 
     private fun linkWithCredentials(credential: PhoneAuthCredential) {
         linkWithCredentials {
-            linkPhoneToAccountUseCase(currentState.phone, credential)
+            linkPhoneToAccountUseCase(phoneNumberVM.value, credential)
         }
     }
 
@@ -93,14 +98,11 @@ class PhoneVM(
         override fun onCodeAutoRetrievalTimeOut(p0: String) {
             verificationId = null
             setState { copy(smsIsSending = false) }
-            setEffect { PhoneContract.Effect.TimeoutFinished }
         }
     }
 
     override fun handleEvent(event: PhoneContract.Event) {
         when(event) {
-            is PhoneContract.Event.OnPhoneChanged -> setState { copy(phone = event.phone) }
-            is PhoneContract.Event.OnSmsCodeChanged -> setState { copy(smsCode = event.smsCode) }
             PhoneContract.Event.OnSmsCodeValidate -> smsCodeValidate()
             is PhoneContract.Event.OnPhoneNumberVerify -> verifyPhoneNumber(event.activity)
         }
@@ -109,15 +111,13 @@ class PhoneVM(
     private fun smsCodeValidate() {
         if(verificationId != null) {
             linkWithCredentials()
-        } else {
-
         }
     }
 
     private fun verifyPhoneNumber(activity: Activity) {
         setState { copy(smsIsSending = true) }
         val options = PhoneAuthOptions.newBuilder(Firebase.auth)
-            .setPhoneNumber("+375" + currentState.phone)       // Phone number to verify
+            .setPhoneNumber("+375" + phoneNumberVM.value)       // Phone number to verify
             .setTimeout(TIMEOUT, TimeUnit.SECONDS) // Timeout and unit
             .setActivity(activity)                 // Activity (for callback binding)
             .setCallbacks(callbacks)          // OnVerificationStateChangedCallbacks

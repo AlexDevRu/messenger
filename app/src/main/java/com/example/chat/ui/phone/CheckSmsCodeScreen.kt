@@ -34,11 +34,7 @@ fun CheckSmsCodeScreen(
                 modifier = Modifier.fillMaxWidth(),
                 label = R.string.sms_code,
                 enabled = !state.applyChangedInProgress,
-                value = state.smsCode,
-                maxCount = 6,
-                onValueChanged = {
-                    viewModel.setEvent(PhoneContract.Event.OnSmsCodeChanged(it))
-                },
+                textFieldVM = viewModel.smsCodeVM,
                 keyboardOptions = KeyboardOptions.Default.copy(keyboardType = KeyboardType.Number)
             )
 

@@ -10,20 +10,19 @@ import com.example.domain.repositories.remote.IFirestoreRepository
 class GetUserByIdUseCase(
     private val streamChatRepository: IStreamChatRepository,
     private val firestoreRepository: IFirestoreRepository,
-    //private val usersRepository: IUsersRepository
+    private val usersRepository: IUsersRepository
 ) {
     suspend operator fun invoke(userId: String): Result<ChatUser> {
-
         return try {
             val user = streamChatRepository.getUserById(userId)
             val phone = firestoreRepository.getPhoneByUserId(userId)
-            //usersRepository.saveUser(user.copy(phone = phone))
+            usersRepository.saveUser(user.copy(phone = phone))
             Result.Success(user.copy(phone = phone))
         } catch(e: Exception) {
-            /*if(e !is UserNotFoundException) {
+            if(e !is UserNotFoundException) {
                 val user = usersRepository.getUserById(userId)
-                if(user != null) usersRepository.saveUser(user.copy(phone = phone))
-            }*/
+                Result.Success(user)
+            }
             Result.Failure(e)
         }
     }

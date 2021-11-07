@@ -17,11 +17,10 @@ class SignUpUserUseCase(
     suspend operator fun invoke(email: String, password: String, userName: String, rememberMe: Boolean): Result<ChatUser> {
         return try {
             val uid = firebaseAuthRepository.createNewUser(email, password)
-            streamRepository.connectUser(uid, userName)
-            val chatUser = ChatUser(id = uid, email = email, userName = userName)
-            usersRepository.saveUser(chatUser)
+            val user = streamRepository.connectUser(uid, userName, email)
+            usersRepository.saveUser(user)
             preferencesRepository.saveUser(if(rememberMe) uid else null)
-            Result.Success(chatUser)
+            Result.Success(user)
         } catch (e: Exception) {
             Result.Failure(e)
         }

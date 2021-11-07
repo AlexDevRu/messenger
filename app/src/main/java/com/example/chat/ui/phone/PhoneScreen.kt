@@ -65,11 +65,6 @@ fun PhoneScreen(
                     Log.e("asd", "phone sms success")
                     onSuccess()
                 }
-                PhoneContract.Effect.TimeoutFinished -> {
-                    snackbarCoroutineScope.launch {
-                        scaffoldState.snackbarHostState.showSnackbar(timeoutMessage)
-                    }
-                }
             }
         }
 

@@ -2,10 +2,12 @@ package com.example.chat.ui.edit_profile
 
 import android.util.Log
 import androidx.lifecycle.viewModelScope
+import com.example.chat.ui.auth.AuthVM
+import com.example.chat.ui.auth.TextFieldVM
 import com.example.chat.ui.base.BaseViewModel
+import com.example.chat.ui.base.composables.CustomImageVM
 import com.example.chat.ui.validation.InputValidator
 import com.example.data.mappers.toDomainModel
-import com.example.data.models.getAvatarOrDefault
 import com.example.domain.common.Result
 import com.example.domain.use_cases.remote.UpdateUserUseCase
 import com.google.firebase.auth.ktx.auth
@@ -24,16 +26,24 @@ class EditProfileVM(
     companion object {
         private const val TAG = "EditProfileVM"
         private const val minCharacters = 4
-        const val maxCharacters = 20
+        private const val maxCharacters = 20
     }
 
     private val client = ChatClient.instance()
 
     init {
-        loadCurrentUser()
+        //loadCurrentUser()
     }
 
-    private fun loadCurrentUser() {
+    private val userNameValidators = listOf(
+        InputValidator.LessCharactersValidator(minCharacters)
+    )
+
+    val customImageVM = CustomImageVM(null)
+    val userNameInputState = TextFieldVM(userNameValidators, maxCharacters)
+
+
+    /*private fun loadCurrentUser() {
         viewModelScope.launch(Dispatchers.IO) {
             val request = QueryUsersRequest(
                 filter = Filters.autocomplete("id", Firebase.auth.currentUser!!.uid),
@@ -53,22 +63,17 @@ class EditProfileVM(
                 Log.e("asd", "CURRENT USER AVTAR ${currentState.avatar}")
             }
         }
-    }
+    }*/
 
     override fun createInitialState(): EditProfileContract.State {
         return EditProfileContract.State(
-            userName = Firebase.auth.currentUser?.displayName.orEmpty(),
-            userNameValidationError = null,
             applyChangedInProgress = false,
-            avatar = Firebase.auth.currentUser?.photoUrl?.path ?: ""
         )
     }
 
     override fun handleEvent(event: EditProfileContract.Event) {
         when(event) {
             EditProfileContract.Event.OnApplyChanges -> applyChanges()
-            is EditProfileContract.Event.OnFirstNameChanged -> validateFirstName(event.firstName)
-            is EditProfileContract.Event.OnImageUpload -> uploadImageBitmap(event.data)
         }
     }
 
@@ -76,7 +81,7 @@ class EditProfileVM(
         setState { copy(applyChangedInProgress = true) }
 
         viewModelScope.launch(Dispatchers.IO) {
-            val result = updateUserUseCase(currentState.userName, currentState.avatar)
+            val result = updateUserUseCase(userNameInputState.value, customImageVM.user.value?.avatar ?: "")
 
             when(result) {
                 is Result.Success -> setEffect { EditProfileContract.Effect.UserUpdatedSuccessfully(result.value) }
@@ -86,20 +91,4 @@ class EditProfileVM(
             setState { copy(applyChangedInProgress = false) }
         }
     }
-
-    private fun validateFirstName(firstName: String) {
-        setState { copy(userName = firstName) }
-        val validator = InputValidator.LessCharactersValidator(minCharacters)
-
-        if(validator.validate(firstName)) {
-            setState { copy(userNameValidationError = null) }
-        } else {
-            setState { copy(userNameValidationError = listOf(validator)) }
-        }
-    }
-
-    private fun uploadImageBitmap(imageData: Any) {
-        setState { copy(avatar = imageData) }
-    }
-
 }

@@ -3,30 +3,24 @@ package com.example.chat.ui.auth
 import com.example.chat.ui.base.UiEffect
 import com.example.chat.ui.base.UiEvent
 import com.example.chat.ui.base.UiState
-import com.example.chat.ui.validation.InputValidator
+import com.example.domain.models.ChatUser
 
 object AuthContract {
     sealed class Event : UiEvent {
         object OnSignInClicked: Event()
-        data class OnValidateEmail(val email: String): Event()
-        data class OnValidatePassword(val password: String): Event()
         data class OnSignInStatusChanged(val status: Boolean): Event()
         object OnModeChanged: Event()
     }
 
     data class State(
-        val email: String? = null,
-        val emailValidationError: List<InputValidator>? = null,
-        val password: String? = null,
-        val passwordValidationError: List<InputValidator>? = null,
         val rememberMe: Boolean = true,
         val loading: Boolean = false,
         val mode: SIGN_MODE = SIGN_MODE.SIGN_IN
     ): UiState
 
     sealed class Effect : UiEffect {
-        object SignInSuccess: Effect()
-        object SignUpSuccess: Effect()
+        data class SignInSuccess(val user: ChatUser): Effect()
+        data class SignUpSuccess(val user: ChatUser): Effect()
         data class AuthFailure(val throwable: Throwable?): Effect()
     }
 

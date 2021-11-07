@@ -33,12 +33,8 @@ fun Drawer(
     onDestinationClick: (route: String) -> Unit,
     onEditProfileClick: () -> Unit = {},
     activeRoute: String,
-    currentUser: ChatUser? = null,
     userIsLoading: Boolean
 ) {
-
-    //Log.e("asd", "PHOTO URL $photoUrl")
-
     val constraintSet = ConstraintSet {
         val userAvatarRef = createRefFor("userAvatar")
         val editProfileButtonRef = createRefFor("editProfileButton")
@@ -68,7 +64,6 @@ fun Drawer(
     ) {
         DrawerAvatar(
             modifier = Modifier.layoutId("userAvatar"),
-            currentUser = currentUser,
             loading = userIsLoading
         )
 

@@ -21,6 +21,7 @@ class SignInUserUseCase(
             println("SignInUserUseCase 2")
             val user = streamRepository.connectUser(uid)
             println("SignInUserUseCase 3")
+            usersRepository.saveUser(user)
             preferencesRepository.saveUser(if(rememberMe) uid else null)
             Result.Success(user)
         } catch (e: Exception) {
@@ -29,7 +30,9 @@ class SignInUserUseCase(
     }
 
     suspend operator fun invoke(userId: String) = try {
-        Result.Success(streamRepository.connectUser(userId))
+        val user = streamRepository.connectUser(userId)
+        usersRepository.saveUser(user)
+        Result.Success(user)
     } catch(e: Exception) {
         try {
             val user = usersRepository.getUserById(userId)

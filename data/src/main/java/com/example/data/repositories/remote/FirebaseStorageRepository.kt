@@ -8,7 +8,9 @@ import com.example.domain.repositories.remote.IFirebaseStorageRepository
 import com.google.firebase.auth.ktx.auth
 import com.google.firebase.ktx.Firebase
 import com.google.firebase.storage.FirebaseStorage
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.tasks.await
+import kotlinx.coroutines.withContext
 import java.io.ByteArrayOutputStream
 
 class FirebaseStorageRepository(private val app: Application): IFirebaseStorageRepository {
@@ -20,23 +22,25 @@ class FirebaseStorageRepository(private val app: Application): IFirebaseStorageR
     }
 
     override suspend fun saveAvatar(avatar: Any): String {
-        return when(avatar) {
-            is Uri -> {
-                val rootRef = FirebaseStorage.getInstance().reference
-                val feedbackRef = rootRef.child(USERS_PHOTOS_FOLDER)
+        return withContext(Dispatchers.IO) {
+            when(avatar) {
+                is Uri -> {
+                    val rootRef = FirebaseStorage.getInstance().reference
+                    val feedbackRef = rootRef.child(USERS_PHOTOS_FOLDER)
 
-                val bitmap = BitmapFactory.decodeStream(app.contentResolver.openInputStream(avatar))
+                    val bitmap = BitmapFactory.decodeStream(app.contentResolver.openInputStream(avatar))
 
-                val baos = ByteArrayOutputStream()
-                bitmap.compress(Bitmap.CompressFormat.JPEG, IMAGE_QUALITY, baos)
-                val data = baos.toByteArray()
+                    val baos = ByteArrayOutputStream()
+                    bitmap.compress(Bitmap.CompressFormat.JPEG, IMAGE_QUALITY, baos)
+                    val data = baos.toByteArray()
 
-                val result = feedbackRef.child(Firebase.auth.currentUser!!.uid).putBytes(data).await()
-                val uriResult = result.metadata?.reference?.downloadUrl?.await()!!
-                uriResult.toString()
+                    val result = feedbackRef.child(Firebase.auth.currentUser!!.uid).putBytes(data).await()
+                    val uriResult = result.metadata?.reference?.downloadUrl?.await()!!
+                    uriResult.toString()
+                }
+                is String -> avatar
+                else -> throw Exception()
             }
-            is String -> avatar
-            else -> throw Exception()
         }
     }
 }

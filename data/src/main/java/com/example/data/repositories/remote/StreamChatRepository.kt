@@ -37,15 +37,15 @@ class StreamChatRepository: IStreamChatRepository {
         } else throw Exception(result.error().message)
     }
 
-    override suspend fun connectUser(userId: String, userName: String) {
+    override suspend fun connectUser(userId: String, userName: String, email: String): ChatUser {
         val token = client.devToken(userId)
 
-        val user = ChatUser(id = userId, userName = userName)
+        val user = ChatUser(id = userId, userName = userName, email = email)
 
         val result = client.connectUser(user.toDataModel(), token).execute()
 
         if(result.isSuccess)
-            return// result.data().user.toDomainModel()
+            return result.data().user.toDomainModel()
         else
             throw Exception(result.error().message)
     }
@@ -68,9 +68,12 @@ class StreamChatRepository: IStreamChatRepository {
             "image" to photoUrl
         )
 
-        val result = client.partialUpdateUser(Firebase.auth.currentUser!!.uid, setFields).execute()
+        val result = client.partialUpdateUser(client.getCurrentUser()!!.id, setFields).execute()
 
         if(result.isSuccess) {
+            val currentUser = client.getCurrentUser()!!
+            currentUser.name = userName
+            currentUser.image = photoUrl
             Log.d(TAG, "user is updated successfully ${result.data()}")
             return result.data().toDomainModel()
         } else {

@@ -18,15 +18,29 @@ class AuthVM(
     companion object {
         private const val TAG = "SignInVM"
         private const val minCharacters = 4
-        const val maxCharachters = 20
+        private const val maxCharacters = 20
     }
+
+    private val emailValidators = listOf(
+        InputValidator.EmailValidator
+    )
+
+    private val userNameValidators = listOf(
+        InputValidator.LessCharactersValidator(minCharacters)
+    )
+
+    private val passwordValidators = listOf(
+        InputValidator.LessCharactersValidator(minCharacters),
+        InputValidator.NoNumbersValidator,
+        InputValidator.SameCaseValidator
+    )
+
+    val emailInputState = TextFieldVM(emailValidators)
+    val userNameInputState = TextFieldVM(userNameValidators, maxCharacters)
+    val passwordInputState = TextFieldVM(passwordValidators)
 
     override fun createInitialState(): AuthContract.State {
         return AuthContract.State(
-            email = null,
-            emailValidationError = emptyList(),
-            password = null,
-            passwordValidationError = emptyList(),
             rememberMe = true,
             loading = false
         )
@@ -35,8 +49,6 @@ class AuthVM(
     override fun handleEvent(event: AuthContract.Event) {
         when (event) {
             AuthContract.Event.OnSignInClicked -> authentificateUser()
-            is AuthContract.Event.OnValidateEmail -> validateEmail(event.email)
-            is AuthContract.Event.OnValidatePassword -> validatePassword(event.password)
             is AuthContract.Event.OnSignInStatusChanged -> setState { copy(rememberMe = event.status) }
             AuthContract.Event.OnModeChanged -> setState { copy(mode = currentState.mode.toggle()) }
         }
@@ -45,55 +57,32 @@ class AuthVM(
     private fun authentificateUser() {
         setState { copy(loading = true) }
 
-        Log.d(TAG, currentState.email!!)
-        Log.d(TAG, currentState.password!!)
+        val email = emailInputState.value
+        val userName = userNameInputState.value
+        val password = passwordInputState.value
 
-        val email = currentState.email!!.trim()
+        Log.d(TAG, "email $email")
+        Log.d(TAG, "userName $userName")
+        Log.d(TAG, "password $password")
 
         viewModelScope.launch(Dispatchers.IO) {
 
             val isSignIn = currentState.mode == AuthContract.SIGN_MODE.SIGN_IN
             val result = if(isSignIn) {
-                signInUserUseCase(email, currentState.password!!, currentState.rememberMe)
+                signInUserUseCase(email, password, currentState.rememberMe)
             } else {
-                signUpUserUseCase(email, currentState.password!!, "", currentState.rememberMe)
+                signUpUserUseCase(email, password, userName, currentState.rememberMe)
             }
 
             when(result) {
-                is Result.Success -> setEffect { if(isSignIn) AuthContract.Effect.SignInSuccess else AuthContract.Effect.SignUpSuccess }
+                is Result.Success -> setEffect {
+                    if(isSignIn) AuthContract.Effect.SignInSuccess(result.value)
+                    else AuthContract.Effect.SignUpSuccess(result.value)
+                }
                 is Result.Failure -> setEffect { AuthContract.Effect.AuthFailure(result.throwable) }
             }
 
             setState { copy(loading = false) }
         }
     }
-
-    private fun validateEmail(email: String) {
-        setState { copy(email = email) }
-
-        val validator = InputValidator.EmailValidator
-
-        if(validator.validate(email)) {
-            setState { copy(emailValidationError = null) }
-        } else {
-            setState { copy(emailValidationError = listOf(validator)) }
-        }
-    }
-
-    private fun validatePassword(password: String) {
-        setState { copy(password = password) }
-
-        val errors = listOf(
-            InputValidator.LessCharactersValidator(minCharacters),
-            InputValidator.NoNumbersValidator,
-            InputValidator.SameCaseValidator
-        ).filter { !it.validate(password) }
-
-        if(errors.isNotEmpty()) {
-            setState { copy(passwordValidationError = errors) }
-        } else {
-            setState { copy(passwordValidationError = null) }
-        }
-    }
-
 }

@@ -19,7 +19,7 @@ fun Root(settingsVM: SettingsVM) {
     val navController = rememberNavController()
 
     val getUserUseCase = get<GetUserUseCase>()
-    val savedUserId = getUserUseCase()
+    val savedUserId = /*"qvbgr72N0lQr1N10C6mka6DN4nk1"*/getUserUseCase()
 
     //val user = Firebase.auth.currentUser
 

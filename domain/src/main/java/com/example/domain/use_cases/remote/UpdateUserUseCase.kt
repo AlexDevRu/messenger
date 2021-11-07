@@ -14,19 +14,10 @@ class UpdateUserUseCase(
     private val usersRepository: IUsersRepository
 ) {
     suspend operator fun invoke(name: String, photoData: Any): Result<ChatUser> {
-
-        var imagePending = true
-        var userPending = true
-
         return try {
             val photoUrl = fireStorageRepository.saveAvatar(photoData)
-            imagePending = false
-            val user = firebaseAuthRepository.updateCurrentUser(name, photoUrl)
-            streamRepository.updateCurrentUser(name, photoUrl)
-            userPending = false
-
+            val user = streamRepository.updateCurrentUser(name, photoUrl)
             usersRepository.saveUser(user)
-
             Result.Success(user)
         } catch(e: Exception) {
             Result.Failure(e)

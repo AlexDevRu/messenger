@@ -3,6 +3,7 @@ package com.example.chat.ui.main
 import android.util.Log
 import androidx.compose.material.*
 import androidx.compose.runtime.*
+import androidx.compose.ui.platform.LocalContext
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.dialog
@@ -20,7 +21,9 @@ import com.example.chat.ui.phone.PhoneScreen
 import com.example.chat.ui.settings.SettingsScreen
 import com.example.chat.ui.settings.SettingsVM
 import com.example.chat.ui.users.UsersScreen
+import com.example.chat.utils.globalVM
 import com.example.data.mappers.toDataModel
+import com.example.domain.models.ChatUser
 import kotlinx.coroutines.launch
 import org.koin.androidx.compose.getViewModel
 
@@ -57,13 +60,12 @@ fun MainScreen(
             scope.launch { drawerState.close() }
         }
 
-        LaunchedEffect(key1 = effect, block = {
+        LaunchedEffect(key1 = effect) {
             when(effect) {
                 MainContract.Effect.Logout -> {
                     navigateToAuth()
                 }
                 is MainContract.Effect.ShowErrorSnackbar -> {
-                    Log.e("asd", (effect as MainContract.Effect.ShowErrorSnackbar).message.orEmpty())
                     snackbarCoroutineScope.launch {
                         scaffoldState.snackbarHostState
                             .showSnackbar(
@@ -73,7 +75,15 @@ fun MainScreen(
                     }
                 }
             }
-        })
+        }
+
+        val context = LocalContext.current
+
+        LaunchedEffect(key1 = mainState.user) {
+            context.globalVM().setUser(mainState.user)
+        }
+
+        Log.d("asd", "user")
 
         ModalDrawer(
             drawerState = drawerState,
@@ -87,7 +97,6 @@ fun MainScreen(
                         closeDrawer()
                         navController.navigate(Screen.EditProfile.route)
                     },
-                    currentUser = mainState.user,
                     userIsLoading = mainState.loading,
                     activeRoute = activeRoute.orEmpty()
                 )

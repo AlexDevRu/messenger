@@ -10,15 +10,10 @@ import io.getstream.chat.android.client.models.User
 object EditProfileContract {
     sealed class Event: UiEvent {
         object OnApplyChanges: Event()
-        data class OnFirstNameChanged(val firstName: String): Event()
-        data class OnImageUpload(val data: Any): Event()
     }
 
     data class State(
-        val userName: String,
-        val userNameValidationError: List<InputValidator>?,
         val applyChangedInProgress: Boolean,
-        val avatar: Any,
     ): UiState
 
     sealed class Effect: UiEffect {

@@ -3,18 +3,13 @@ package com.example.chat.ui.main
 import android.util.Log
 import androidx.lifecycle.viewModelScope
 import com.example.chat.ui.base.BaseViewModel
-import com.example.data.mappers.toDataModel
 import com.example.data.mappers.toDomainModel
-import com.example.data.models.getAvatarOrDefault
 import com.example.domain.common.Result
 import com.example.domain.use_cases.local.preferences.GetUserUseCase
 import com.example.domain.use_cases.remote.DeleteChannelUseCase
 import com.example.domain.use_cases.remote.LogoutUseCase
 import com.example.domain.use_cases.remote.SignInUserUseCase
-import com.google.firebase.auth.ktx.auth
-import com.google.firebase.ktx.Firebase
 import io.getstream.chat.android.client.ChatClient
-import io.getstream.chat.android.offline.ChatDomain
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 
@@ -36,16 +31,15 @@ class MainVM(
     private fun getUser() {
 
         val user = ChatClient.instance().getCurrentUser()
-        Log.d("asd", "current user ${user}")
+        Log.d(TAG, "current user ${user}")
 
         if(user == null) {
-            val userId = getUserUseCase()
-            Log.d("asd", "current user userId ${userId}")
+            val userId = /*"qvbgr72N0lQr1N10C6mka6DN4nk1"*/getUserUseCase()
+            Log.d(TAG, "current user userId ${userId}")
             if(userId != null) {
                 fetchUser(userId)
             }
         }
-
     }
 
     private fun fetchUser(userId: String) {
@@ -54,11 +48,11 @@ class MainVM(
             val result = signInUserUseCase(userId)
             when(result) {
                 is Result.Success -> {
-                    Log.e("asd", "current user fetched ${result.value}")
+                    Log.e(TAG, "current user fetched ${result.value}")
                     val user = result.value
-                    user?.email = Firebase.auth.currentUser?.email!!
-                    user?.userName = Firebase.auth.currentUser?.displayName!!
-                    user?.avatar = Firebase.auth.currentUser!!.toDomainModel().getAvatarOrDefault()
+                    Log.e(TAG, "user name ${result.value?.userName}")
+                    Log.e(TAG, "user email ${result.value?.email}")
+                    Log.e(TAG, "user avatar ${result.value?.avatar}")
                     setState { copy(user = user) }
                 }
                 is Result.Failure -> setEffect { MainContract.Effect.ShowErrorSnackbar(result.throwable.message) }
@@ -74,7 +68,7 @@ class MainVM(
 
     override fun createInitialState(): MainContract.State {
         return MainContract.State(
-            user = Firebase.auth.currentUser?.toDomainModel(),
+            user = ChatClient.instance().getCurrentUser()?.toDomainModel(),
             loading = false
         )
     }
@@ -82,7 +76,7 @@ class MainVM(
     override fun handleEvent(event: MainContract.Event) {
         when(event) {
             is MainContract.Event.OnUserLoad -> getUser()
-            is MainContract.Event.OnUserUpdated -> setState { copy(user = Firebase.auth.currentUser?.toDomainModel()) }
+            is MainContract.Event.OnUserUpdated -> setState { copy(user = event.user) }
             MainContract.Event.OnLogout -> logout()
         }
     }

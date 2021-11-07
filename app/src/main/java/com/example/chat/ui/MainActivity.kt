@@ -21,7 +21,13 @@ import java.util.*
 
 class MainActivity: AppCompatActivity() {
 
+    companion object {
+        private const val TAG = "MainActivity"
+    }
+
     private val getLanguageUseCase by inject<GetLanguageUseCase>()
+
+    val globalVM by viewModel<GlobalVM>()
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -31,9 +37,9 @@ class MainActivity: AppCompatActivity() {
         /*GlobalScope.launch(Dispatchers.IO) {
             val users = ChatDomain.instance().searchUsersByName("u", 0, 10, false).execute()
             if(users.isSuccess) {
-                Log.d("asd", "users ${users.data()}")
+                Log.d(TAG, "users ${users.data()}")
             } else {
-                Log.d("asd", "users ${users.error().message}")
+                Log.d(TAG, "users ${users.error().message}")
             }
         }*/
 
@@ -54,7 +60,7 @@ class MainActivity: AppCompatActivity() {
     private fun setConfig() {
         val lang = getLanguageUseCase.invoke()
 
-        Log.d("asd", "from shared preferences: lang $lang")
+        Log.d(TAG, "from shared preferences: lang $lang")
 
         val locale = Locale(lang)
         val newConfig = Configuration(resources.configuration)

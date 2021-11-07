@@ -10,6 +10,8 @@ import androidx.compose.material.MaterialTheme
 import androidx.compose.material.OutlinedTextField
 import androidx.compose.material.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.layout.layoutId
 import androidx.compose.ui.res.painterResource
@@ -21,6 +23,7 @@ import androidx.constraintlayout.compose.ConstraintLayout
 import androidx.constraintlayout.compose.ConstraintSet
 import androidx.constraintlayout.compose.Dimension
 import com.example.chat.R
+import com.example.chat.ui.auth.TextFieldVM
 import com.example.chat.ui.models.StringResWrapper
 import com.example.chat.ui.validation.InputValidator
 
@@ -31,16 +34,15 @@ fun TextInputField(
     leadingIcon: @Composable (() -> Unit)? = null,
     trailingIcon: @Composable (() -> Unit)? = null,
     transformation: VisualTransformation = VisualTransformation.None,
-    value: String = "",
-    errors: List<InputValidator>? = null,
-    maxCount: Int? = null,
-    enabled: Boolean = true,
-    onValueChanged: (String) -> Unit = {},
+    textFieldVM: TextFieldVM,
+    enabled: Boolean,
     keyboardOptions: KeyboardOptions = KeyboardOptions.Default,
     maxLines: Int = 1
 ) {
 
     val labelStr = stringResource(label)
+
+    val state by textFieldVM.state.collectAsState()
 
     val errorStr: (InputValidator) -> StringResWrapper = err@ {
         return@err when(it) {
@@ -61,7 +63,7 @@ fun TextInputField(
         constrain(errorsRef) {
             top.linkTo(fieldRef.bottom)
             start.linkTo(fieldRef.start)
-            end.linkTo(if(maxCount != null) counterRef.start else parent.end)
+            end.linkTo(if(textFieldVM.maxCount != null) counterRef.start else parent.end)
             width = Dimension.fillToConstraints
         }
 
@@ -79,20 +81,17 @@ fun TextInputField(
 
     ConstraintLayout(constraintSet, modifier = modifier.padding(vertical = 8.dp)) {
         OutlinedTextField(
-            value = value,
+            value = state.value,
             maxLines = maxLines,
             onValueChange = {
-                if(maxCount != null && it.trim().length <= maxCount)
-                    onValueChanged(it.trim())
-                else
-                    onValueChanged(it.trim())
+                textFieldVM.onValueChanged(it)
             },
             label = { Text(text = labelStr) },
             enabled = enabled,
             placeholder = { Text(text = stringResource(id = label)) },
-            isError = !errors.isNullOrEmpty(),
+            isError = !state.valueErrors.isNullOrEmpty(),
             leadingIcon = leadingIcon,
-            trailingIcon = if(errors.isNullOrEmpty()) trailingIcon else errorIcon,
+            trailingIcon = if(state.valueErrors.isNullOrEmpty()) trailingIcon else errorIcon,
             modifier = Modifier
                 .fillMaxWidth()
                 .layoutId("field"),
@@ -103,7 +102,7 @@ fun TextInputField(
             .padding(end = 10.dp)
             .layoutId("errors")
         ) {
-            errors?.forEach {
+            state.valueErrors.forEach {
                 val stringRes = errorStr(it)
                 Text(
                     text = stringResource(id = stringRes.stringRes, *(stringRes.formatArgs)),
@@ -113,9 +112,9 @@ fun TextInputField(
             }
         }
 
-        if(maxCount != null) {
+        if(textFieldVM.maxCount != null) {
             Text(
-                text = "${value.length} / $maxCount",
+                text = "${state.value.length} / ${textFieldVM.maxCount}",
                 modifier = Modifier.layoutId("counter")
             )
         }
