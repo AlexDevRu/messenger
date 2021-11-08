@@ -3,6 +3,7 @@ package com.example.chat.ui.auth
 import android.util.Log
 import androidx.lifecycle.viewModelScope
 import com.example.chat.ui.base.BaseViewModel
+import com.example.chat.ui.base.composables.TextFieldVM
 import com.example.chat.ui.validation.InputValidator
 import com.example.domain.common.Result
 import com.example.domain.use_cases.remote.SignInUserUseCase

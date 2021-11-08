@@ -3,9 +3,9 @@ package com.example.chat.ui.edit_profile
 import android.util.Log
 import androidx.lifecycle.viewModelScope
 import com.example.chat.ui.auth.AuthVM
-import com.example.chat.ui.auth.TextFieldVM
 import com.example.chat.ui.base.BaseViewModel
 import com.example.chat.ui.base.composables.CustomImageVM
+import com.example.chat.ui.base.composables.TextFieldVM
 import com.example.chat.ui.validation.InputValidator
 import com.example.data.mappers.toDomainModel
 import com.example.domain.common.Result
@@ -31,39 +31,12 @@ class EditProfileVM(
 
     private val client = ChatClient.instance()
 
-    init {
-        //loadCurrentUser()
-    }
-
     private val userNameValidators = listOf(
         InputValidator.LessCharactersValidator(minCharacters)
     )
 
     val customImageVM = CustomImageVM(null)
     val userNameInputState = TextFieldVM(userNameValidators, maxCharacters)
-
-
-    /*private fun loadCurrentUser() {
-        viewModelScope.launch(Dispatchers.IO) {
-            val request = QueryUsersRequest(
-                filter = Filters.autocomplete("id", Firebase.auth.currentUser!!.uid),
-                offset = 0,
-                limit = 1,
-            )
-            val userResult = client.queryUsers(request).execute()
-            if(userResult.isSuccess) {
-                val user = userResult.data().first()
-                Log.e("asd", "CURRENT USER LOADED $user")
-                user.name = Firebase.auth.currentUser?.displayName.orEmpty()
-                user.image = Firebase.auth.currentUser!!.toDomainModel().getAvatarOrDefault()
-                setState { copy(
-                    userName = user.name,
-                    avatar = user.image
-                ) }
-                Log.e("asd", "CURRENT USER AVTAR ${currentState.avatar}")
-            }
-        }
-    }*/
 
     override fun createInitialState(): EditProfileContract.State {
         return EditProfileContract.State(

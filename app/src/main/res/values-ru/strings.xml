@@ -10,6 +10,8 @@
     <string name="please_wait">Ждите</string>
     <string name="sign_in">Войти</string>
 
+    <string name="set_your_avatar">Установите свою аватарку</string>
+
     <string name="get_sms_code">Получить смс-код</string>
     <string name="sms_code">смс-код</string>
     <string name="confirm">Подтвердить</string>

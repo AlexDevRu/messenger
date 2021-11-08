@@ -13,7 +13,6 @@ import androidx.compose.material.rememberScaffoldState
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.layout.layoutId
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
@@ -22,8 +21,6 @@ import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import androidx.constraintlayout.compose.ConstraintLayout
-import androidx.constraintlayout.compose.ConstraintSet
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
@@ -57,9 +54,6 @@ fun Auth(
 ){
     val navController = rememberNavController()
 
-    val globalVM = LocalContext.current.globalVM()
-    val user by globalVM.user.collectAsState()
-
     NavHost(navController = navController, startDestination = "check_credentials") {
         composable("check_credentials") {
             AuthScreen(
@@ -68,11 +62,9 @@ fun Auth(
             )
         }
         composable("new_user_settings") {
-            Log.d("asd", "new sett VM ${user!!}")
-            NewAccountSettingsScreen(
+            NewAvatarSignUpScreen(
                 onSuccess = { navController.navigate("phone") },
-                onSkip = { navController.navigate("phone") },
-                chatUser = user!!
+                onSkip = { navController.navigate("phone") }
             )
         }
         composable("phone") {
@@ -98,41 +90,6 @@ fun AuthScreen(
     val authState by viewModel.uiState.collectAsState()
     val effect by viewModel.effect.collectAsState(null)
 
-    val constraintSet = ConstraintSet {
-        val logo = createRefFor("logo")
-        val userNameInput = createRefFor("userNameInput")
-        val emailInput = createRefFor("emailInput")
-        val passwordInput = createRefFor("passwordInput")
-        val rememberMeCheckbox = createRefFor("rememberMeCheckbox")
-        val signButton = createRefFor("signButton")
-        val toggleModeButton = createRefFor("toggleModeButton")
-
-        constrain(logo) {
-            top.linkTo(parent.top)
-            start.linkTo(parent.start)
-            end.linkTo(parent.end)
-        }
-        constrain(emailInput) {
-            top.linkTo(logo.bottom, margin = 30.dp)
-        }
-        constrain(userNameInput) {
-            top.linkTo(emailInput.bottom)
-        }
-        constrain(passwordInput) {
-            top.linkTo(userNameInput.bottom)
-        }
-        constrain(rememberMeCheckbox) {
-            top.linkTo(passwordInput.bottom, margin = 8.dp)
-            start.linkTo(parent.start)
-        }
-        constrain(signButton) {
-            top.linkTo(rememberMeCheckbox.bottom, margin = 16.dp)
-        }
-        constrain(toggleModeButton) {
-            top.linkTo(signButton.bottom, margin = 8.dp)
-        }
-    }
-
     val scaffoldState = rememberScaffoldState()
     val snackbarCoroutineScope = rememberCoroutineScope()
 
@@ -146,12 +103,12 @@ fun AuthScreen(
             when(effect) {
                 is AuthContract.Effect.SignInSuccess -> {
                     Log.d("asd", "SIGN IN USER ${(effect as AuthContract.Effect.SignInSuccess).user}")
-                    globalVM.setUser((effect as AuthContract.Effect.SignInSuccess).user)
+                    globalVM.reloadCurrentUser()
                     onSignInSuccess()
                 }
                 is AuthContract.Effect.SignUpSuccess -> {
                     Log.d("asd", "SIGN UP USER ${(effect as AuthContract.Effect.SignUpSuccess).user}")
-                    globalVM.setUser((effect as AuthContract.Effect.SignUpSuccess).user)
+                    globalVM.reloadCurrentUser()
                     onSignUpSuccess()
                 }
                 is AuthContract.Effect.AuthFailure -> {
@@ -172,18 +129,26 @@ fun AuthScreen(
             }
         })
 
-        ConstraintLayout(modifier = Modifier
-            .padding(16.dp)
-            .verticalScroll(scrollState),
-            constraintSet = constraintSet
+        Column(
+            modifier = Modifier.padding(16.dp).verticalScroll(scrollState),
+            horizontalAlignment = Alignment.CenterHorizontally
         ) {
 
-            Logo(modifier = Modifier.layoutId("logo"))
+            Logo()
+
+            Spacer(modifier = Modifier.height(16.dp))
+
+            if(authState.mode == AuthContract.SIGN_MODE.SIGN_UP) {
+                TextInputField(
+                    modifier = Modifier.fillMaxWidth(),
+                    label = R.string.username,
+                    textFieldVM = viewModel.userNameInputState,
+                    enabled = !authState.loading
+                )
+            }
 
             TextInputField(
-                modifier = Modifier
-                    .layoutId("emailInput")
-                    .fillMaxWidth(),
+                modifier = Modifier.fillMaxWidth(),
                 label = R.string.email,
                 textFieldVM = viewModel.emailInputState,
                 enabled = !authState.loading,
@@ -191,18 +156,7 @@ fun AuthScreen(
             )
 
             TextInputField(
-                modifier = Modifier
-                    .layoutId("userNameInput")
-                    .fillMaxWidth(),
-                label = R.string.username,
-                textFieldVM = viewModel.userNameInputState,
-                enabled = !authState.loading
-            )
-
-            TextInputField(
-                modifier = Modifier
-                    .layoutId("passwordInput")
-                    .fillMaxWidth(),
+                modifier = Modifier.fillMaxWidth(),
                 label = R.string.password,
                 transformation = PasswordVisualTransformation(),
                 textFieldVM = viewModel.passwordInputState,
@@ -210,20 +164,23 @@ fun AuthScreen(
                 keyboardOptions = KeyboardOptions.Default.copy(keyboardType = KeyboardType.Password),
             )
 
-            CheckboxWithText(
-                modifier = Modifier.layoutId("rememberMeCheckbox"),
-                text = stringResource(id = R.string.remember_me),
-                enabled = !authState.loading,
-                checked = authState.rememberMe,
-                onCheckedChanged = {
-                    viewModel.setEvent(AuthContract.Event.OnSignInStatusChanged(it))
-                }
-            )
+            Spacer(modifier = Modifier.height(16.dp))
+
+            Row(modifier = Modifier.fillMaxWidth()) {
+                CheckboxWithText(
+                    text = stringResource(id = R.string.remember_me),
+                    enabled = !authState.loading,
+                    checked = authState.rememberMe,
+                    onCheckedChanged = {
+                        viewModel.setEvent(AuthContract.Event.OnSignInStatusChanged(it))
+                    }
+                )
+            }
+
+            Spacer(modifier = Modifier.height(16.dp))
 
             ProgressButton(
-                modifier = Modifier
-                    .layoutId("signButton")
-                    .fillMaxWidth(),
+                modifier = Modifier.fillMaxWidth(),
                 onClick = {
                     viewModel.setEvent(AuthContract.Event.OnSignInClicked)
                 },
@@ -232,14 +189,14 @@ fun AuthScreen(
                 textRes = if(authState.mode == AuthContract.SIGN_MODE.SIGN_IN) R.string.sign_in else R.string.sign_up
             )
 
+            Spacer(modifier = Modifier.height(8.dp))
+
             OutlinedButton(
                 onClick = {
                     viewModel.setEvent(AuthContract.Event.OnModeChanged)
                 },
                 enabled = !authState.loading,
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .layoutId("toggleModeButton")
+                modifier = Modifier.fillMaxWidth()
             ) {
                 val textRes = if(authState.mode == AuthContract.SIGN_MODE.SIGN_IN) R.string.sign_in_button_text else R.string.sign_up_button_text
                 Text(text = stringResource(textRes), modifier = Modifier.padding(8.dp))

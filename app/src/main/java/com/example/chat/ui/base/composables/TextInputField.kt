@@ -23,9 +23,51 @@ import androidx.constraintlayout.compose.ConstraintLayout
 import androidx.constraintlayout.compose.ConstraintSet
 import androidx.constraintlayout.compose.Dimension
 import com.example.chat.R
-import com.example.chat.ui.auth.TextFieldVM
 import com.example.chat.ui.models.StringResWrapper
 import com.example.chat.ui.validation.InputValidator
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.StateFlow
+
+data class TextFieldState(
+    val value: String = "",
+    val valueErrors: List<InputValidator> = emptyList(),
+)
+
+class TextFieldVM(
+    private val validators: List<InputValidator> = emptyList(),
+    val maxCount: Int? = null
+) {
+
+    private val _state = MutableStateFlow(TextFieldState())
+    val state: StateFlow<TextFieldState> = _state
+
+    val value: String get() = state.value.value
+
+    private val _hasErrors = MutableStateFlow(false)
+    val hasErrors: StateFlow<Boolean> = _hasErrors
+
+    private val _hasErrorsOrEmpty = MutableStateFlow(true)
+    val hasErrorsOrEmpty: StateFlow<Boolean> = _hasErrorsOrEmpty
+
+    fun onValueChanged(newValue: String) {
+        if(maxCount != null && newValue.length > maxCount)
+            return
+
+        _state.value = state.value.copy(value = newValue)
+
+        val failedValidators = validators.filter {
+            !it.validate(newValue)
+        }
+
+        _state.value = state.value.copy(
+            valueErrors = failedValidators,
+            value = newValue,
+        )
+
+        _hasErrors.value = failedValidators.isNotEmpty()
+        _hasErrorsOrEmpty.value = hasErrors.value || newValue.isEmpty()
+    }
+}
 
 @Composable
 fun TextInputField(

@@ -31,7 +31,7 @@ class GlobalVM(
     }
 
     fun reloadCurrentUser(uid: String? = Firebase.auth.currentUser?.uid) {
-        job?.cancel()
+        /*job?.cancel()
         if(uid != null) {
             job = viewModelScope.launch(Dispatchers.IO) {
                 val result = getUserByIdUseCase(uid)
@@ -41,10 +41,12 @@ class GlobalVM(
                     }
                 }
             }
-        }
-    }
-
-    fun setUser(user: ChatUser?) {
+        }*/
+        val user = ChatClient.instance().getCurrentUser()?.toDomainModel()
         _user.value = user
     }
+
+    /*fun setUser(user: ChatUser?) {
+        _user.value = user
+    }*/
 }

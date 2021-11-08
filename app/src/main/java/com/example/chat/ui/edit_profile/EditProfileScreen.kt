@@ -12,12 +12,13 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
 import com.example.chat.R
-import com.example.chat.ui.base.composables.*
+import com.example.chat.ui.base.composables.CustomImage
+import com.example.chat.ui.base.composables.ProgressButton
+import com.example.chat.ui.base.composables.TextInputField
+import com.example.chat.ui.base.composables.Toolbar
 import com.example.chat.ui.models.Screen
 import com.example.chat.utils.globalVM
-import com.example.data.mappers.toDataModel
 import com.example.domain.models.ChatUser
-import io.getstream.chat.android.compose.ui.common.avatar.UserAvatar
 import kotlinx.coroutines.launch
 import org.koin.androidx.compose.getViewModel
 
@@ -26,8 +27,6 @@ fun EditProfileScreen(
     onCancel: () -> Unit = {},
     onSuccess: (ChatUser) -> Unit,
     hasToolbar: Boolean = true,
-    //onImageUpload: (Uri) -> Unit,
-    //applyChangesInProgress: Boolean,
     viewModel: EditProfileVM = getViewModel()
 ) {
 

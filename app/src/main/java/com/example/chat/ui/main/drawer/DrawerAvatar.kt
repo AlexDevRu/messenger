@@ -11,8 +11,6 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import coil.ImageLoader
-import coil.decode.SvgDecoder
 import com.example.chat.utils.globalVM
 import com.example.data.mappers.toDataModel
 import io.getstream.chat.android.client.models.User
@@ -26,12 +24,6 @@ fun DrawerAvatar(
 
     val globalVM = LocalContext.current.globalVM()
     val user by globalVM.user.collectAsState()
-
-    val imageLoader = ImageLoader.Builder(LocalContext.current)
-        .componentRegistry {
-            add (SvgDecoder( LocalContext.current) )
-        }
-        .build()
 
     Column(
         modifier = modifier,

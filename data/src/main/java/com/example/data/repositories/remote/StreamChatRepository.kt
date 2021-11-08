@@ -6,12 +6,14 @@ import com.example.data.mappers.toDomainModel
 import com.example.domain.exceptions.UserNotFoundException
 import com.example.domain.models.ChatUser
 import com.example.domain.repositories.remote.IStreamChatRepository
-import com.google.firebase.auth.ktx.auth
-import com.google.firebase.ktx.Firebase
 import io.getstream.chat.android.client.ChatClient
 import io.getstream.chat.android.client.api.models.QueryUsersRequest
 import io.getstream.chat.android.client.models.Filters
 import io.getstream.chat.android.offline.ChatDomain
+import kotlin.coroutines.coroutineContext
+import kotlin.coroutines.resume
+import kotlin.coroutines.resumeWithException
+import kotlin.coroutines.suspendCoroutine
 
 class StreamChatRepository: IStreamChatRepository {
 
@@ -22,7 +24,39 @@ class StreamChatRepository: IStreamChatRepository {
     private val client = ChatClient.instance()
     private val domain = ChatDomain.instance()
 
+    private suspend fun connectAnonymousUser() {
+
+    }
+
     override suspend fun getUserById(userId: String): ChatUser {
+
+        /*suspendCoroutine<Unit> { continuation ->
+            client.connectAnonymousUser().enqueue {
+                if(it.isSuccess) continuation.resume(Unit)
+                else continuation.resumeWithException(Exception(it.error().message))
+            }
+        }
+        client.connectAnonymousUser().execute()
+
+        val request = QueryUsersRequest(
+            filter = Filters.eq("id", userId),
+            offset = 0,
+            limit = 1
+        )
+
+        return suspendCoroutine { continuation ->
+            client.queryUsers(request).enqueue {
+                client.disconnect()
+
+                if(it.isSuccess) {
+                    val user = it.data().firstOrNull()
+                    if(user != null) continuation.resume(user.toDomainModel())
+                    else continuation.resumeWithException(UserNotFoundException())
+                } else
+                    continuation.resumeWithException(Exception(it.error().message))
+            }
+        }*/
+
         client.connectAnonymousUser().execute()
         val request = QueryUsersRequest(
             filter = Filters.eq("id", userId),
@@ -40,14 +74,16 @@ class StreamChatRepository: IStreamChatRepository {
     override suspend fun connectUser(userId: String, userName: String, email: String): ChatUser {
         val token = client.devToken(userId)
 
-        val user = ChatUser(id = userId, userName = userName, email = email)
+        val user = ChatUser(userId, email = email, userName = userName)
 
-        val result = client.connectUser(user.toDataModel(), token).execute()
-
-        if(result.isSuccess)
-            return result.data().user.toDomainModel()
-        else
-            throw Exception(result.error().message)
+        return suspendCoroutine { continuation ->
+            client.connectUser(user.toDataModel(), token).enqueue { result ->
+                if(result.isSuccess)
+                    continuation.resume(result.data().user.toDomainModel())
+                else
+                    continuation.resumeWithException(Exception(result.error().message))
+            }
+        }
     }
 
     override suspend fun connectUser(userId: String): ChatUser {
@@ -55,11 +91,14 @@ class StreamChatRepository: IStreamChatRepository {
 
         val user = getUserById(userId)
 
-        val result = client.connectUser(user.toDataModel(), token).execute()
-        if(result.isSuccess)
-            return result.data().user.toDomainModel()
-        else
-            throw Exception(result.error().message)
+        return suspendCoroutine { continuation ->
+            client.connectUser(user.toDataModel(), token).enqueue { result ->
+                if(result.isSuccess)
+                    continuation.resume(result.data().user.toDomainModel())
+                else
+                    continuation.resumeWithException(Exception(result.error().message))
+            }
+        }
     }
 
     override suspend fun updateCurrentUser(userName: String, photoUrl: String): ChatUser {
@@ -68,17 +107,19 @@ class StreamChatRepository: IStreamChatRepository {
             "image" to photoUrl
         )
 
-        val result = client.partialUpdateUser(client.getCurrentUser()!!.id, setFields).execute()
-
-        if(result.isSuccess) {
-            val currentUser = client.getCurrentUser()!!
-            currentUser.name = userName
-            currentUser.image = photoUrl
-            Log.d(TAG, "user is updated successfully ${result.data()}")
-            return result.data().toDomainModel()
-        } else {
-            Log.d(TAG, "user update error ${result.error().message}")
-            throw Exception(result.error().message)
+        return suspendCoroutine { continuation ->
+            client.partialUpdateUser(client.getCurrentUser()!!.id, setFields).enqueue { result ->
+                if(result.isSuccess) {
+                    val currentUser = client.getCurrentUser()!!
+                    currentUser.name = userName
+                    currentUser.image = photoUrl
+                    Log.d(TAG, "user is updated successfully ${result.data()}")
+                    continuation.resume(result.data().toDomainModel())
+                } else {
+                    Log.d(TAG, "user update error ${result.error().message}")
+                    continuation.resumeWithException(Exception(result.error().message))
+                }
+            }
         }
     }
 
@@ -120,9 +161,11 @@ class StreamChatRepository: IStreamChatRepository {
             )
         }
 
-        val result = client.queryUsers(request).execute()
-
-        if(result.isSuccess) return result.data().map { it.toDomainModel() }
-        else throw Exception(result.error().message)
+        return suspendCoroutine { continuation ->
+            client.queryUsers(request).enqueue { result ->
+                if(result.isSuccess) continuation.resume(result.data().map { it.toDomainModel() })
+                else continuation.resumeWithException(Exception(result.error().message))
+            }
+        }
     }
 }

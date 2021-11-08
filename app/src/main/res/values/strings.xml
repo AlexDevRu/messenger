@@ -10,6 +10,8 @@
     <string name="please_wait">Please wait</string>
     <string name="sign_in">Sign In</string>
 
+    <string name="set_your_avatar">Set your avatar</string>
+
     <string name="get_sms_code">Get sms code</string>
     <string name="sms_code">sms code</string>
     <string name="confirm">Confirm</string>

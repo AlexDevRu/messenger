@@ -80,7 +80,7 @@ fun MainScreen(
         val context = LocalContext.current
 
         LaunchedEffect(key1 = mainState.user) {
-            context.globalVM().setUser(mainState.user)
+            context.globalVM().reloadCurrentUser()
         }
 
         Log.d("asd", "user")

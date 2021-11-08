@@ -5,7 +5,7 @@ import com.example.chat.ui.chat.ChatVM
 import com.example.chat.ui.edit_profile.EditProfileVM
 import com.example.chat.ui.main.MainVM
 import com.example.chat.ui.auth.AuthVM
-import com.example.chat.ui.auth.NewAccountSettingsVM
+import com.example.chat.ui.auth.NewAvatarSignUpVM
 import com.example.chat.ui.contacts.ContactsVM
 import com.example.chat.ui.phone.PhoneVM
 import com.example.chat.ui.settings.SettingsVM
@@ -49,6 +49,6 @@ val viewModelModule = module {
     }
 
     viewModel {
-        NewAccountSettingsVM(get())
+        NewAvatarSignUpVM(get())
     }
 }
