@@ -12,6 +12,8 @@
 
     <string name="set_your_avatar">Установите свою аватарку</string>
 
+    <string name="contacts_not_found">Контакты не найдены</string>
+
     <string name="get_sms_code">Получить смс-код</string>
     <string name="sms_code">смс-код</string>
     <string name="confirm">Подтвердить</string>

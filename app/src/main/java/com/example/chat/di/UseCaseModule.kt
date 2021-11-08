@@ -52,4 +52,8 @@ val useCaseModule = module {
     single {
         GetUsersByQueryUseCase(get(), get(), get())
     }
+
+    single {
+        GetUsersByPhoneNumbersUseCase(get(), get(), get())
+    }
 }

@@ -2,13 +2,18 @@ package com.example.chat.ui.contacts
 
 import android.annotation.SuppressLint
 import android.app.Application
+import android.util.Log
 import androidx.lifecycle.viewModelScope
 import com.example.chat.ui.base.BaseViewModel
+import com.example.domain.common.Result
+import com.example.domain.use_cases.remote.GetUsersByPhoneNumbersUseCase
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 
 class ContactsVM(
-    private val app: Application
+    private val app: Application,
+    private val getUsersByPhoneNumbersUseCase: GetUsersByPhoneNumbersUseCase
 ): BaseViewModel<ContactsContract.Event, ContactsContract.State, ContactsContract.Effect>() {
 
     companion object {
@@ -21,7 +26,8 @@ class ContactsVM(
 
     override fun createInitialState(): ContactsContract.State {
         return ContactsContract.State(
-            contacts = emptyList()
+            contacts = emptyList(),
+            users = emptyList()
         )
     }
 
@@ -32,11 +38,13 @@ class ContactsVM(
     }
 
     @SuppressLint("Range")
-    fun readContacts() {
+    suspend fun readContacts() {
 
         setState { copy(loading = true) }
 
         val contacts = mutableListOf<Contact>()
+
+        val phones = mutableMapOf<Int, List<String>>()
 
         val cr = app.contentResolver
         val pCur = cr.query(
@@ -47,7 +55,6 @@ class ContactsVM(
             null
         )
         if (pCur != null && pCur.count > 0) {
-            val phones = mutableMapOf<Int, List<String>>()
             while (pCur.moveToNext()) {
                 val contactId = pCur.getInt(pCur.getColumnIndex(PHONE_CONTACT_ID))
                 var curPhones = mutableListOf<String>()
@@ -70,8 +77,8 @@ class ContactsVM(
                         val id = cur.getInt(cur.getColumnIndex(CONTACT_ID))
                         if (phones.containsKey(id)) {
                             val con = Contact(
-                                name = cur.getString(cur.getColumnIndex(DISPLAY_NAME)),
-                                phoneNumber = phones[id]!!.joinToString(", ")
+                                contactName = cur.getString(cur.getColumnIndex(DISPLAY_NAME)),
+                                phoneNumbers = phones[id]!!
                             )
                             contacts.add(con)
                         }
@@ -82,6 +89,38 @@ class ContactsVM(
         }
 
         pCur?.close()
+
+        val phoneNumbers = mutableListOf<String>()
+        for(pList in phones.values)
+            for(p in pList)
+                phoneNumbers.add(p)
+
+        Log.e("asd", "phoneNumbers $phoneNumbers")
+
+        val result = getUsersByPhoneNumbersUseCase(phoneNumbers.map { it.replace(Regex("\\s|-"), "") } )
+
+        when(result) {
+            is Result.Success -> {
+                withContext(Dispatchers.Default) {
+
+                    Log.d("asd", "users in result ${result.value}")
+
+                    for(user in result.value) {
+                        val contact = contacts.find {
+                            Log.e("asd", "${it.phoneNumbers}")
+                            it.phoneNumbers.map { it.replace(Regex("\\s|-"), "") }.contains(user.phone)
+                        }
+                        Log.e("asd", "user $user")
+                        Log.e("asd", "contact $contact")
+                        Log.e("asd", "===============================")
+                        contact?.user = user
+                    }
+                }
+            }
+            is Result.Failure -> {
+                Log.e("asd", "error contacts ${result.throwable.message}")
+            }
+        }
 
         setState { copy(contacts = contacts, loading = false) }
     }

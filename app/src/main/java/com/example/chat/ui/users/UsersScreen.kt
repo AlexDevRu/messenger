@@ -1,33 +1,20 @@
 package com.example.chat.ui.users
 
-import android.text.format.DateFormat
-import androidx.compose.foundation.clickable
-import androidx.compose.foundation.interaction.MutableInteractionSource
-import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.material.*
-import androidx.compose.material.ripple.rememberRipple
+import androidx.compose.material.CircularProgressIndicator
+import androidx.compose.material.Scaffold
+import androidx.compose.material.rememberScaffoldState
 import androidx.compose.runtime.*
-import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.graphics.vector.ImageVector
-import androidx.compose.ui.res.painterResource
-import androidx.compose.ui.res.stringResource
-import androidx.compose.ui.res.vectorResource
-import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
-import com.example.chat.R
-import com.example.chat.ui.base.composables.BackHandler
 import com.example.chat.ui.models.Screen
-import io.getstream.chat.android.client.models.User
-import io.getstream.chat.android.compose.ui.common.BackButton
-import io.getstream.chat.android.compose.ui.common.SearchInput
-import io.getstream.chat.android.compose.ui.common.avatar.UserAvatar
 import kotlinx.coroutines.launch
 import org.koin.androidx.compose.getViewModel
 
@@ -93,106 +80,4 @@ fun UsersScreen(
             }
         }
     }
-}
-
-private fun convertDate(milliseconds: Long): String {
-    return DateFormat.format("dd/MM/yyyy hh:mm", milliseconds).toString()
-}
-
-@Composable
-private fun UserItem(
-    user: User,
-    modifier: Modifier = Modifier,
-    onClick: () -> Unit = {}
-) {
-    Box(modifier = modifier.clickable(
-        interactionSource = remember { MutableInteractionSource() },
-        indication = rememberRipple()
-    ) {
-        onClick()
-    }) {
-        Row(
-            modifier = Modifier.padding(8.dp),
-            horizontalArrangement = Arrangement.spacedBy(8.dp)
-        ) {
-            UserAvatar(user = user, modifier = Modifier.size(40.dp))
-            Column() {
-                Text(text = user.name, fontSize = 16.sp, fontWeight = FontWeight.Bold)
-                Text(text = convertDate(user.lastActive?.time ?: 0), fontSize = 12.sp)
-            }
-        }
-    }
-}
-
-@Composable
-private fun UsersToolbar(
-    query: String,
-    onQueryChange: (String) -> Unit,
-    onBackPressed: () -> Unit
-) {
-
-    var searchExpanded by rememberSaveable {
-        mutableStateOf(false)
-    }
-
-    val onBack = {
-        if(searchExpanded) searchExpanded = false
-        else onBackPressed()
-    }
-
-    BackHandler(onBack = onBack)
-
-    TopAppBar(
-        modifier = Modifier.fillMaxWidth(),
-        backgroundColor = MaterialTheme.colors.surface
-    ) {
-        Row(modifier = Modifier
-            .padding(8.dp)
-            .fillMaxWidth(),
-            horizontalArrangement = Arrangement.SpaceBetween,
-            verticalAlignment = Alignment.CenterVertically
-        ) {
-            Row(verticalAlignment = Alignment.CenterVertically) {
-
-                BackButton(
-                    imageVector = ImageVector.vectorResource(R.drawable.ic_baseline_arrow_back_24),
-                    onBackPressed = onBack
-                )
-
-                if(!searchExpanded) {
-                    Text(
-                        text = stringResource(Screen.Users.displayText!!),
-                        fontSize = 18.sp
-                    )
-                }
-            }
-
-            if(searchExpanded) {
-                SearchInput(
-                    modifier = Modifier.fillMaxWidth(),
-                    query = query,
-                    label = { Text("Search") },
-                    onValueChange = {
-                        onQueryChange(it)
-                    }
-                )
-            } else {
-                IconButton(onClick = {
-                    searchExpanded = true
-                }) {
-                    Icon(
-                        painterResource(id = R.drawable.ic_baseline_search_24),
-                        "contentDescription",
-                        tint = MaterialTheme.colors.onSurface
-                    )
-                }
-            }
-        }
-    }
-}
-
-@Preview
-@Composable
-fun UserPreview() {
-    UserItem(User())
 }

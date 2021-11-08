@@ -24,9 +24,12 @@ import com.example.chat.ui.users.UsersScreen
 import com.example.chat.utils.globalVM
 import com.example.data.mappers.toDataModel
 import com.example.domain.models.ChatUser
+import com.google.accompanist.pager.ExperimentalPagerApi
 import kotlinx.coroutines.launch
 import org.koin.androidx.compose.getViewModel
 
+@ExperimentalMaterialApi
+@ExperimentalPagerApi
 @Composable
 fun MainScreen(
     navigateToAuth: () -> Unit,

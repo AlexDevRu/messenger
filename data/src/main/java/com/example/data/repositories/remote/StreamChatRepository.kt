@@ -10,7 +10,6 @@ import io.getstream.chat.android.client.ChatClient
 import io.getstream.chat.android.client.api.models.QueryUsersRequest
 import io.getstream.chat.android.client.models.Filters
 import io.getstream.chat.android.offline.ChatDomain
-import kotlin.coroutines.coroutineContext
 import kotlin.coroutines.resume
 import kotlin.coroutines.resumeWithException
 import kotlin.coroutines.suspendCoroutine
@@ -23,10 +22,6 @@ class StreamChatRepository: IStreamChatRepository {
 
     private val client = ChatClient.instance()
     private val domain = ChatDomain.instance()
-
-    private suspend fun connectAnonymousUser() {
-
-    }
 
     override suspend fun getUserById(userId: String): ChatUser {
 
@@ -137,6 +132,23 @@ class StreamChatRepository: IStreamChatRepository {
 
     override fun logout() {
         client.disconnect()
+    }
+
+    override suspend fun getUsersByIds(ids: List<String>): List<ChatUser> {
+        if(ids.isEmpty()) return emptyList()
+
+        val request = QueryUsersRequest(
+            filter = Filters.`in`("id", ids),
+            offset = 0,
+            limit = 100
+        )
+
+        return suspendCoroutine { continuation ->
+            client.queryUsers(request).enqueue { result ->
+                if(result.isSuccess) continuation.resume(result.data().map { it.toDomainModel() })
+                else continuation.resumeWithException(Exception(result.error().message))
+            }
+        }
     }
 
     override suspend fun getUsersByQuery(query: String): List<ChatUser> {

@@ -46,9 +46,9 @@ class FirestoreRepository: IFirestoreRepository {
         return document?.get(PHONE_NUMBER) as String
     }
 
-    override suspend fun getPhonesByUserIds(userIds: List<String>): Map<String, String> {
+    private suspend fun filterByField(fieldName: String, values: List<String>): Map<String, String> {
         val data = store.collection(USERS_COLLECTION)
-            .whereIn(USER_ID, userIds)
+            .whereIn(fieldName, values)
             .get()
             .await()
 
@@ -62,4 +62,8 @@ class FirestoreRepository: IFirestoreRepository {
 
         return phonesMap
     }
+
+    override suspend fun getPhonesByUserIds(userIds: List<String>) = filterByField(USER_ID, userIds)
+
+    override suspend fun getUsersByPhones(phoneNumbers: List<String>) = filterByField(PHONE_NUMBER, phoneNumbers)
 }

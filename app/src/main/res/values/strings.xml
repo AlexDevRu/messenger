@@ -12,6 +12,8 @@
 
     <string name="set_your_avatar">Set your avatar</string>
 
+    <string name="contacts_not_found">Contacts not found</string>
+
     <string name="get_sms_code">Get sms code</string>
     <string name="sms_code">sms code</string>
     <string name="confirm">Confirm</string>

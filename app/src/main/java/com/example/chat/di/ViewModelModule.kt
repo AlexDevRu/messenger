@@ -38,7 +38,7 @@ val viewModelModule = module {
         SettingsVM(get(), get(), get(), get())
     }
     viewModel {
-        ContactsVM(androidApplication())
+        ContactsVM(androidApplication(), get())
     }
     viewModel {
         PhoneVM(get())

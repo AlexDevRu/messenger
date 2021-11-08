@@ -9,5 +9,6 @@ interface IStreamChatRepository {
     suspend fun updateCurrentUser(userName: String, photoUrl: String): ChatUser
     fun deleteChannel(cid: String)
     fun logout()
+    suspend fun getUsersByIds(ids: List<String>): List<ChatUser>
     suspend fun getUsersByQuery(query: String): List<ChatUser>
 }
