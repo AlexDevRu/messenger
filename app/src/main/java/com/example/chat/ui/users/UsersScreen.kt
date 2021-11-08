@@ -23,13 +23,11 @@ import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
 import com.example.chat.R
 import com.example.chat.ui.base.composables.BackHandler
-import com.example.chat.ui.main.MainContract
 import com.example.chat.ui.models.Screen
 import io.getstream.chat.android.client.models.User
 import io.getstream.chat.android.compose.ui.common.BackButton
 import io.getstream.chat.android.compose.ui.common.SearchInput
 import io.getstream.chat.android.compose.ui.common.avatar.UserAvatar
-import io.getstream.chat.android.compose.ui.theme.ChatTheme
 import kotlinx.coroutines.launch
 import org.koin.androidx.compose.getViewModel
 

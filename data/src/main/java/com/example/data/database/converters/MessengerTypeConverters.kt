@@ -12,4 +12,13 @@ class MessengerTypeConverters {
     fun fromUUID(uuid: UUID?): String? {
         return uuid?.toString()
     }
+
+    @TypeConverter
+    fun toDate(time: Long?): Date? {
+        return if(time != null) Date(time) else time
+    }
+    @TypeConverter
+    fun fromDate(date: Date?): Long? {
+        return date?.time
+    }
 }

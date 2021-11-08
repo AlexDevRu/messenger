@@ -5,7 +5,6 @@ import com.example.data.database.entities.ChatUserImageEntity
 import com.example.data.database.entities.ChatUserPhoneEntity
 import com.example.data.database.entities.ChatUserWithMetadata
 import com.example.domain.models.ChatUser
-import com.google.firebase.auth.FirebaseUser
 import io.getstream.chat.android.client.models.User
 
 fun User.toDomainModel(): ChatUser {
@@ -13,7 +12,8 @@ fun User.toDomainModel(): ChatUser {
         id = id,
         email = extraData["email"].toString(),
         userName = extraData["name"].toString(),
-        avatar = extraData["image"].toString()
+        avatar = extraData["image"].toString(),
+        lastActive = lastActive
     )
 }
 
@@ -24,6 +24,7 @@ fun ChatUser.toDataModel(): User {
     user.extraData["image"] = if(avatar == null) "" else avatar.toString()
     user.extraData["name"] = userName
     user.extraData["email"] = email
+    user.lastActive = lastActive
     return user
 }
 
@@ -33,31 +34,15 @@ fun ChatUserWithMetadata.toDomainModel(): ChatUser {
         email = user.email,
         userName = user.userName,
         phone = phone.phone,
-        avatar = image.image
+        avatar = image.image,
+        lastActive = user.lastActive,
     )
 }
 
 fun ChatUser.toEntity(): ChatUserWithMetadata {
     return ChatUserWithMetadata(
-        user = ChatUserEntity(id = id, userName = userName, email = email),
+        user = ChatUserEntity(id = id, userName = userName, email = email, lastActive = lastActive),
         image = ChatUserImageEntity(image = if(avatar == null) "" else avatar.toString(), userId = id),
         phone = ChatUserPhoneEntity(phone = phone, userId = id)
-    )
-}
-
-fun FirebaseUser.toDataModel(): User {
-    return User(id = uid, extraData = mutableMapOf(
-        "email" to email!!,
-        "name" to displayName.orEmpty(),
-        "image" to if(photoUrl != null) photoUrl.toString() else ""
-    ))
-}
-
-fun FirebaseUser.toDomainModel(): ChatUser {
-    return ChatUser(
-        id = uid,
-        email = email!!,
-        userName = displayName.orEmpty(),
-        avatar = if(photoUrl != null) photoUrl.toString() else ""
     )
 }
