@@ -7,15 +7,18 @@ import androidx.room.RoomDatabase
 import androidx.room.TypeConverters
 import com.example.data.database.converters.MessengerTypeConverters
 import com.example.data.database.dao.UserDao
+import com.example.data.database.dao.remote_keys.UserRemoteKeysDao
 import com.example.data.database.entities.ChatUserEntity
 import com.example.data.database.entities.ChatUserImageEntity
 import com.example.data.database.entities.ChatUserPhoneEntity
+import com.example.data.database.entities.remote_keys.UserRemoteKeys
 
 @Database(
     entities = [
         ChatUserEntity::class,
         ChatUserImageEntity::class,
-        ChatUserPhoneEntity::class
+        ChatUserPhoneEntity::class,
+        UserRemoteKeys::class
     ],
     version = 1
 )
@@ -23,6 +26,7 @@ import com.example.data.database.entities.ChatUserPhoneEntity
 abstract class MessengerDatabase : RoomDatabase() {
 
     abstract fun userDao(): UserDao
+    abstract fun userRemoteKeysDao(): UserRemoteKeysDao
 
     companion object {
 

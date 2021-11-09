@@ -11,7 +11,6 @@ import androidx.compose.runtime.getValue
 import com.example.chat.ui.settings.SettingsVM
 import com.example.chat.ui.theme.ComposeTheme
 import com.example.domain.use_cases.local.preferences.GetLanguageUseCase
-import com.google.accompanist.pager.ExperimentalPagerApi
 import io.getstream.chat.android.compose.ui.theme.ChatTheme
 import io.getstream.chat.android.offline.ChatDomain
 import kotlinx.coroutines.Dispatchers
@@ -31,7 +30,6 @@ class MainActivity: AppCompatActivity() {
 
     val globalVM by viewModel<GlobalVM>()
 
-    @ExperimentalPagerApi
     @ExperimentalMaterialApi
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)

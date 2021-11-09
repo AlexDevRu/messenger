@@ -10,11 +10,9 @@ import com.example.chat.ui.main.MainScreen
 import com.example.chat.ui.models.Screen
 import com.example.chat.ui.settings.SettingsVM
 import com.example.domain.use_cases.local.preferences.GetUserUseCase
-import com.google.accompanist.pager.ExperimentalPagerApi
 import org.koin.androidx.compose.get
 
 @ExperimentalMaterialApi
-@ExperimentalPagerApi
 @Composable
 fun Root(settingsVM: SettingsVM) {
     val navController = rememberNavController()

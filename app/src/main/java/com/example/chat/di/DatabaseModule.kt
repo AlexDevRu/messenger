@@ -11,4 +11,7 @@ val databaseModule = module {
     single {
         get<MessengerDatabase>().userDao()
     }
+    single {
+        get<MessengerDatabase>().userRemoteKeysDao()
+    }
 }

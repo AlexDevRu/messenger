@@ -1,20 +1,31 @@
 package com.example.data.repositories.remote
 
 import android.util.Log
+import androidx.paging.*
+import com.example.data.database.MessengerDatabase
 import com.example.data.mappers.toDataModel
 import com.example.data.mappers.toDomainModel
+import com.example.data.remote_mediators.UsersRemoteMediator
 import com.example.domain.exceptions.UserNotFoundException
 import com.example.domain.models.ChatUser
+import com.example.domain.repositories.remote.IFirestoreRepository
 import com.example.domain.repositories.remote.IStreamChatRepository
+import com.google.firebase.auth.ktx.auth
+import com.google.firebase.ktx.Firebase
 import io.getstream.chat.android.client.ChatClient
 import io.getstream.chat.android.client.api.models.QueryUsersRequest
 import io.getstream.chat.android.client.models.Filters
 import io.getstream.chat.android.offline.ChatDomain
+import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.map
 import kotlin.coroutines.resume
 import kotlin.coroutines.resumeWithException
 import kotlin.coroutines.suspendCoroutine
 
-class StreamChatRepository: IStreamChatRepository {
+class StreamChatRepository(
+    private val database: MessengerDatabase,
+    private val firestoreRepository: IFirestoreRepository
+): IStreamChatRepository {
 
     companion object {
         private const val TAG = "StreamChatRepository"
@@ -193,6 +204,32 @@ class StreamChatRepository: IStreamChatRepository {
             client.queryUsers(request).enqueue { result ->
                 if(result.isSuccess) continuation.resume(result.data().map { it.toDomainModel() })
                 else continuation.resumeWithException(Exception(result.error().message))
+            }
+        }
+    }
+
+    @ExperimentalPagingApi
+    override fun getUserPagerFlow(query: String): Flow<PagingData<ChatUser>> {
+        return Pager(
+            config = PagingConfig(
+                pageSize = 100,
+                enablePlaceholders = false,
+                initialLoadSize = 300,
+                prefetchDistance = 1
+            ),
+            remoteMediator = UsersRemoteMediator(
+                query,
+                firestoreRepository,
+                database
+            ),
+            pagingSourceFactory = {
+                val dbQuery = "%${query.trim().lowercase().replace(' ', '%')}%"
+                val excludeId = if(Firebase.auth.currentUser != null) Firebase.auth.currentUser!!.uid else ""
+                database.userDao().getPaginatedUsersByQuery(dbQuery, excludeId)
+            }
+        ).flow.map { pagingData ->
+            pagingData.map {
+                it.toDomainModel()
             }
         }
     }

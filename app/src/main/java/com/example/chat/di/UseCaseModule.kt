@@ -50,7 +50,7 @@ val useCaseModule = module {
     }
 
     single {
-        GetUsersByQueryUseCase(get(), get(), get())
+        GetUsersByQueryUseCase(get())
     }
 
     single {

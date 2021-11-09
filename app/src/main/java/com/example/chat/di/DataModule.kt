@@ -30,7 +30,7 @@ val dataModule = module {
     }
 
     single<IStreamChatRepository> {
-        StreamChatRepository()
+        StreamChatRepository(get(), get())
     }
 
     single<IFirebaseStorageRepository> {

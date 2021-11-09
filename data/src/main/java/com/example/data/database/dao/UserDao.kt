@@ -1,5 +1,6 @@
 package com.example.data.database.dao
 
+import androidx.paging.PagingSource
 import androidx.room.Dao
 import androidx.room.Insert
 import androidx.room.OnConflictStrategy
@@ -11,11 +12,9 @@ import com.example.data.database.entities.ChatUserWithMetadata
 
 @Dao
 interface UserDao {
-    @Query("""
-        SELECT * from users where
-        userName like :query
-        """)
-    suspend fun getUsersByQuery(query: String): List<ChatUserWithMetadata>
+
+    @Query("select * from users where userName like :query and users.id != :excludeId")
+    fun getPaginatedUsersByQuery(query: String, excludeId: String = ""): PagingSource<Int, ChatUserWithMetadata>
 
     suspend fun saveUsers(users: List<ChatUserWithMetadata>) {
         for(user in users) saveUser(user)
@@ -38,4 +37,7 @@ interface UserDao {
 
     @Query("select * from users where id=:id")
     suspend fun getUserById(id: String): ChatUserWithMetadata?
+
+    @Query("delete from users")
+    suspend fun clearAll()
 }

@@ -1,4 +1,4 @@
-package com.example.chat.ui.main
+package com.example.chat.channels
 
 import com.example.chat.ui.base.UiEffect
 import com.example.chat.ui.base.UiEvent

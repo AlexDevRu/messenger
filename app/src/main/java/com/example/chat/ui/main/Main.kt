@@ -9,6 +9,7 @@ import androidx.navigation.compose.composable
 import androidx.navigation.compose.dialog
 import androidx.navigation.compose.rememberNavController
 import com.example.chat.R
+import com.example.chat.channels.ChannelsScreen
 import com.example.chat.ui.base.composables.CustomAlertDialog
 import com.example.chat.ui.chat.ChannelScreen
 import com.example.chat.ui.contacts.ContactsScreen
@@ -23,13 +24,9 @@ import com.example.chat.ui.settings.SettingsVM
 import com.example.chat.ui.users.UsersScreen
 import com.example.chat.utils.globalVM
 import com.example.data.mappers.toDataModel
-import com.example.domain.models.ChatUser
-import com.google.accompanist.pager.ExperimentalPagerApi
 import kotlinx.coroutines.launch
 import org.koin.androidx.compose.getViewModel
 
-@ExperimentalMaterialApi
-@ExperimentalPagerApi
 @Composable
 fun MainScreen(
     navigateToAuth: () -> Unit,

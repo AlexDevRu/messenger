@@ -1,6 +1,7 @@
 package com.example.chat
 
 import android.app.Application
+import androidx.paging.ExperimentalPagingApi
 import com.example.chat.di.dataModule
 import com.example.chat.di.databaseModule
 import com.example.chat.di.useCaseModule

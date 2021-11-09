@@ -1,4 +1,4 @@
-package com.example.chat.ui.main
+package com.example.chat.channels
 
 import androidx.compose.foundation.layout.*
 import androidx.compose.material.CircularProgressIndicator

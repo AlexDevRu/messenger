@@ -12,12 +12,6 @@ class UsersRepository(
     private val usersDao: UserDao
 ): IUsersRepository {
 
-    override suspend fun getUsersByQuery(query: String, excludeCurrentUser: Boolean): List<ChatUser> {
-        val dbQuery = "%${query.trim().lowercase().replace(' ', '%')}%"
-        val users = usersDao.getUsersByQuery(dbQuery).map { it.toDomainModel() }
-        return if(excludeCurrentUser) users.filter { it.id != Firebase.auth.currentUser?.uid } else users
-    }
-
     override suspend fun getUserById(id: String): ChatUser? {
         return usersDao.getUserById(id)?.toDomainModel()
     }
