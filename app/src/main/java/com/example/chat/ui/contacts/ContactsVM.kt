@@ -6,6 +6,7 @@ import android.util.Log
 import androidx.lifecycle.viewModelScope
 import com.example.chat.ui.base.BaseViewModel
 import com.example.domain.common.Result
+import com.example.domain.use_cases.remote.CreateChannelUseCase
 import com.example.domain.use_cases.remote.GetUsersByPhoneNumbersUseCase
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
@@ -13,10 +14,13 @@ import kotlinx.coroutines.withContext
 
 class ContactsVM(
     private val app: Application,
-    private val getUsersByPhoneNumbersUseCase: GetUsersByPhoneNumbersUseCase
+    private val getUsersByPhoneNumbersUseCase: GetUsersByPhoneNumbersUseCase,
+    private val createChannelUseCase: CreateChannelUseCase
 ): BaseViewModel<ContactsContract.Event, ContactsContract.State, ContactsContract.Effect>() {
 
     companion object {
+        private const val TAG = "ContactsVM"
+
         private const val CONTACT_ID = android.provider.ContactsContract.Contacts._ID
         private const val DISPLAY_NAME = android.provider.ContactsContract.Contacts.DISPLAY_NAME
         private const val HAS_PHONE_NUMBER = android.provider.ContactsContract.Contacts.HAS_PHONE_NUMBER
@@ -34,6 +38,7 @@ class ContactsVM(
     override fun handleEvent(event: ContactsContract.Event) {
         when(event) {
             ContactsContract.Event.OnReadContacts -> viewModelScope.launch(Dispatchers.IO) { readContacts() }
+            is ContactsContract.Event.OnUserClick -> createNewChannel(event.userId)
         }
     }
 
@@ -93,35 +98,45 @@ class ContactsVM(
         val phoneNumbers = mutableListOf<String>()
         for(pList in phones.values)
             for(p in pList)
-                phoneNumbers.add(p)
+                phoneNumbers.add(p.replace(Regex("\\s|-"), ""))
 
-        Log.e("asd", "phoneNumbers $phoneNumbers")
+        Log.e(TAG, "phoneNumbers $phoneNumbers")
 
-        val result = getUsersByPhoneNumbersUseCase(phoneNumbers.map { it.replace(Regex("\\s|-"), "") } )
+        val result = getUsersByPhoneNumbersUseCase(phoneNumbers)
 
         when(result) {
             is Result.Success -> {
                 withContext(Dispatchers.Default) {
 
-                    Log.d("asd", "users in result ${result.value}")
+                    Log.d(TAG, "users in result ${result.value}")
 
                     for(user in result.value) {
                         val contact = contacts.find {
                             Log.e("asd", "${it.phoneNumbers}")
                             it.phoneNumbers.map { it.replace(Regex("\\s|-"), "") }.contains(user.phone)
                         }
-                        Log.e("asd", "user $user")
-                        Log.e("asd", "contact $contact")
-                        Log.e("asd", "===============================")
+                        Log.e(TAG, "user $user")
+                        Log.e(TAG, "contact $contact")
+                        Log.e(TAG, "===============================")
                         contact?.user = user
                     }
                 }
             }
             is Result.Failure -> {
-                Log.e("asd", "error contacts ${result.throwable.message}")
+                Log.e(TAG, "error contacts ${result.throwable.message}")
             }
         }
 
         setState { copy(contacts = contacts, loading = false) }
+    }
+
+    private fun createNewChannel(selectedUserId: String) {
+        viewModelScope.launch {
+            val result = createChannelUseCase(selectedUserId)
+            when(result) {
+                is Result.Success -> setEffect { ContactsContract.Effect.GoToChat(result.value) }
+                is Result.Failure -> {}
+            }
+        }
     }
 }

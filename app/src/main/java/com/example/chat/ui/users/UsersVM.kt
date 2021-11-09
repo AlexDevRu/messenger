@@ -5,15 +5,16 @@ import androidx.lifecycle.viewModelScope
 import com.example.chat.ui.base.BaseViewModel
 import com.example.data.mappers.toDataModel
 import com.example.domain.common.Result
+import com.example.domain.use_cases.remote.CreateChannelUseCase
 import com.example.domain.use_cases.remote.GetUsersByQueryUseCase
-import io.getstream.chat.android.client.ChatClient
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 
 class UsersVM(
-    private val getUsersByQueryUseCase: GetUsersByQueryUseCase
+    private val getUsersByQueryUseCase: GetUsersByQueryUseCase,
+    private val createChannelUseCase: CreateChannelUseCase
 ): BaseViewModel<UsersContract.Event, UsersContract.State, UsersContract.Effect>() {
 
     companion object {
@@ -21,7 +22,6 @@ class UsersVM(
         private const val SEARCH_DELAY = 1500L
     }
 
-    private val client = ChatClient.instance()
     private var searchJob: Job? = null
 
     init {
@@ -65,15 +65,12 @@ class UsersVM(
         }
     }
 
-    private fun createNewChannel(selectedUser: String) {
-        client.createChannel(
-            channelType = "messaging",
-            members = listOf(client.getCurrentUser()!!.id, selectedUser)
-        ).enqueue { result ->
-            if (result.isSuccess) {
-                setEffect { UsersContract.Effect.GoToChat(result.data().cid) }
-            } else {
-                Log.e(TAG, result.error().message.toString())
+    private fun createNewChannel(selectedUserId: String) {
+        viewModelScope.launch {
+            val result = createChannelUseCase(selectedUserId)
+            when(result) {
+                is Result.Success -> setEffect { UsersContract.Effect.GoToChat(result.value) }
+                is Result.Failure -> {}
             }
         }
     }

@@ -26,7 +26,7 @@ val viewModelModule = module {
         EditProfileVM(get())
     }
     viewModel {
-        UsersVM(get())
+        UsersVM(get(), get())
     }
     viewModel {
         ChatVM(get())
@@ -38,7 +38,7 @@ val viewModelModule = module {
         SettingsVM(get(), get(), get(), get())
     }
     viewModel {
-        ContactsVM(androidApplication(), get())
+        ContactsVM(androidApplication(), get(), get())
     }
     viewModel {
         PhoneVM(get())

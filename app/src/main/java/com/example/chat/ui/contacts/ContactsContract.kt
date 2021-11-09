@@ -1,18 +1,10 @@
 package com.example.chat.ui.contacts
 
-import androidx.compose.runtime.Composable
-import com.example.chat.R
 import com.example.chat.ui.base.UiEffect
 import com.example.chat.ui.base.UiEvent
 import com.example.chat.ui.base.UiState
 import com.example.domain.models.ChatUser
 import io.getstream.chat.android.client.models.User
-
-typealias ComposableFun = @Composable () -> Unit
-sealed class TabItem(var icon: Int, var title: String, var screen: ComposableFun) {
-    object Contacts : TabItem(R.drawable.ic_baseline_phone_24, "All contacts", { ContactsTabScreen() })
-    object Users : TabItem(R.drawable.ic_baseline_people_alt_24, "Users", { UsersTabScreen() })
-}
 
 data class Contact(
     val contactName: String,
@@ -23,6 +15,7 @@ data class Contact(
 object ContactsContract {
     sealed class Event: UiEvent {
         object OnReadContacts: Event()
+        data class OnUserClick(val userId: String): Event()
     }
 
     data class State(
@@ -32,6 +25,6 @@ object ContactsContract {
     ): UiState
 
     sealed class Effect: UiEffect {
-
+        data class GoToChat(val cid: String): Effect()
     }
 }

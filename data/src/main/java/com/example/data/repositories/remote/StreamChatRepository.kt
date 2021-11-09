@@ -118,6 +118,22 @@ class StreamChatRepository: IStreamChatRepository {
         }
     }
 
+    override suspend fun createChannel(uid: String): String {
+        return suspendCoroutine { continuation ->
+            client.createChannel(
+                channelType = "messaging",
+                members = listOf(client.getCurrentUser()!!.id, uid)
+            ).enqueue { result ->
+                if (result.isSuccess) {
+                    continuation.resume(result.data().cid)
+                } else {
+                    Log.e(TAG, result.error().message.toString())
+                    continuation.resumeWithException(Exception(result.error().message))
+                }
+            }
+        }
+    }
+
     override fun deleteChannel(cid: String) {
         Log.w(TAG, "deleteChannel")
 

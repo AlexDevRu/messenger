@@ -3,80 +3,42 @@ package com.example.chat.ui.contacts
 import android.Manifest
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
-import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.material.*
-import androidx.compose.runtime.*
+import androidx.compose.material.CircularProgressIndicator
+import androidx.compose.material.Scaffold
+import androidx.compose.material.Text
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import com.example.chat.R
 import com.example.chat.ui.base.composables.Toolbar
-import com.google.accompanist.pager.*
-import kotlinx.coroutines.launch
 import org.koin.androidx.compose.getViewModel
 
-
-@ExperimentalPagerApi
-@ExperimentalMaterialApi
-@Composable
-fun Tabs(tabs: List<TabItem>, pagerState: PagerState) {
-
-    val scope = rememberCoroutineScope()
-
-    TabRow(
-        modifier = Modifier.fillMaxWidth(),
-        selectedTabIndex = pagerState.currentPage,
-        backgroundColor = MaterialTheme.colors.surface,
-        contentColor = MaterialTheme.colors.onSurface,
-        indicator = { tabPositions ->
-            TabRowDefaults.Indicator(
-                Modifier.pagerTabIndicatorOffset(pagerState, tabPositions)
-            )
-        }) {
-        tabs.forEachIndexed { index, tab ->
-            LeadingIconTab(
-                icon = { Icon(painter = painterResource(tab.icon), contentDescription = "") },
-                text = { Text(tab.title) },
-                selected = pagerState.currentPage == index,
-                onClick = {
-                    scope.launch {
-                        pagerState.animateScrollToPage(index)
-                    }
-                },
-            )
-        }
-    }
-}
-
-@ExperimentalPagerApi
-@ExperimentalMaterialApi
 @Composable
 fun ContactsScreen(
-    onBackPressed: () -> Unit
+    onBackPressed: () -> Unit,
+    goToChannel: (cid: String) -> Unit
 ) {
-
-    val tabs = listOf(TabItem.Contacts, TabItem.Users)
-    val pagerState = rememberPagerState(0)
-
     Scaffold(
         topBar = { Toolbar(R.string.contacts, onBackPressed) }
     ) {
-        /*Column {
-            Tabs(tabs = tabs, pagerState = pagerState)
-            HorizontalPager(state = pagerState, count = tabs.size) { page ->
-                tabs[page].screen()
-            }
-        }*/
-        ContactsTabScreen()
+        ContactsList(goToChannel)
     }
 }
 
 @Composable
-fun ContactsTabScreen(
+fun ContactsList(
+    goToChannel: (cid: String) -> Unit,
     viewModel: ContactsVM = getViewModel()
 ) {
 
@@ -89,6 +51,18 @@ fun ContactsTabScreen(
     }
 
     val state by viewModel.uiState.collectAsState()
+    val effect by viewModel.effect.collectAsState(null)
+
+
+    LaunchedEffect(key1 = effect) {
+        when(effect) {
+            is ContactsContract.Effect.GoToChat -> {
+                val cid = (effect as ContactsContract.Effect.GoToChat).cid
+                goToChannel(cid)
+            }
+        }
+    }
+
 
     if(state.loading) {
         Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
@@ -107,7 +81,11 @@ fun ContactsTabScreen(
                     item {
                         ContactItem(
                             modifier = Modifier.fillMaxWidth(),
-                            contact = contact
+                            contact = contact,
+                            onClick = {
+                                if(contact.user?.id != null)
+                                    viewModel.setEvent(ContactsContract.Event.OnUserClick(contact.user!!.id))
+                            }
                         )
                     }
                 }
@@ -118,9 +96,4 @@ fun ContactsTabScreen(
     LaunchedEffect(key1 = Unit){
         permissionsLauncher.launch(Manifest.permission.READ_CONTACTS)
     }
-}
-
-@Composable
-fun UsersTabScreen() {
-    Text(text = "2")
 }

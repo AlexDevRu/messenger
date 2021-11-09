@@ -11,6 +11,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import com.example.chat.utils.toReadableString
 import com.example.data.mappers.toDataModel
 import io.getstream.chat.android.compose.ui.common.avatar.UserAvatar
 
@@ -33,10 +34,16 @@ fun ContactItem(
         ) {
             if(contact.user != null)
                 UserAvatar(user = contact.user!!.toDataModel(), modifier = Modifier.size(40.dp))
+
             Column {
-                val nameSuffix = if(contact.user != null) " - ${contact.user?.userName}" else ""
+                val isUser = contact.user != null
+
+                val nameSuffix = if(isUser) " - ${contact.user?.userName}" else ""
                 Text(text = "${contact.contactName}${nameSuffix}", fontSize = 16.sp, fontWeight = FontWeight.Bold)
                 Text(text = contact.phoneNumbers.joinToString(", "), fontSize = 12.sp)
+
+                if(isUser)
+                    Text(text = contact.user?.lastActive.toReadableString(), fontSize = 12.sp)
             }
         }
     }

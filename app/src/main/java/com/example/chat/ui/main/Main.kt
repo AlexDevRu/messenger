@@ -126,7 +126,8 @@ fun MainScreen(
                 }
                 composable(DrawerMenuItem.Contacts.route) {
                     ContactsScreen(
-                        onBackPressed = { navController.navigateUp() }
+                        onBackPressed = { navController.navigateUp() },
+                        goToChannel = { navController.navigate(Screen.Channel.createRoute(it)) }
                     )
                     activeRoute = DrawerMenuItem.Contacts.route
                 }
