@@ -1,5 +1,6 @@
 package com.example.data.repositories.remote
 
+import android.util.Log
 import com.example.domain.repositories.remote.IFirestoreRepository
 import com.google.firebase.auth.ktx.auth
 import com.google.firebase.firestore.FirebaseFirestoreSettings
@@ -14,6 +15,8 @@ class FirestoreRepository: IFirestoreRepository {
 
         private const val USER_ID = "userId"
         private const val PHONE_NUMBER = "phoneNumber"
+
+        private const val MAX_SIZE_WHERE_IN = 10
     }
 
     private val store = Firebase.firestore
@@ -47,17 +50,30 @@ class FirestoreRepository: IFirestoreRepository {
     }
 
     private suspend fun filterByField(fieldName: String, values: List<String>): Map<String, String> {
-        val data = store.collection(USERS_COLLECTION)
-            .whereIn(fieldName, values)
-            .get()
-            .await()
 
         val phonesMap = mutableMapOf<String, String>()
 
-        data.documents.forEach {
-            val uid = it.get(USER_ID) as String
-            val phoneNumber = it.get(PHONE_NUMBER) as String
-            phonesMap[uid] = phoneNumber
+        var startIndex = 0
+
+        while(startIndex < values.size) {
+
+            val size = if((values.size - startIndex) >= MAX_SIZE_WHERE_IN) MAX_SIZE_WHERE_IN else values.size - startIndex
+            val partValues = values.subList(startIndex, startIndex + size)
+
+            Log.e("asd", "size $size, startIndex $startIndex")
+
+            val data = store.collection(USERS_COLLECTION)
+                .whereIn(fieldName, partValues)
+                .get()
+                .await()
+
+            data.documents.forEach {
+                val uid = it.get(USER_ID) as String
+                val phoneNumber = it.get(PHONE_NUMBER) as String
+                phonesMap[uid] = phoneNumber
+            }
+
+            startIndex += MAX_SIZE_WHERE_IN
         }
 
         return phonesMap

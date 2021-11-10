@@ -87,9 +87,11 @@ fun UsersScreen(
                         item { LoadingView(modifier = Modifier.fillParentMaxSize()) }
                     }
                     loadState.append is LoadState.Loading -> {
-                        item { LoadingView(modifier = Modifier
-                            .fillMaxWidth()
-                            .padding(8.dp)) }
+                        item {
+                            LoadingView(
+                                modifier = Modifier.fillMaxWidth().padding(8.dp)
+                            )
+                        }
                     }
                     loadState.refresh is LoadState.Error -> {
                         val e = lazyUsers.loadState.refresh as LoadState.Error

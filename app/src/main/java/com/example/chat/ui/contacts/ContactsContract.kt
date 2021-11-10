@@ -26,5 +26,6 @@ object ContactsContract {
 
     sealed class Effect: UiEffect {
         data class GoToChat(val cid: String): Effect()
+        data class ShowErrorMessage(val message: String): Effect()
     }
 }

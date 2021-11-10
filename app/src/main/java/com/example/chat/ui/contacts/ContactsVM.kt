@@ -8,6 +8,8 @@ import com.example.chat.ui.base.BaseViewModel
 import com.example.domain.common.Result
 import com.example.domain.use_cases.remote.CreateChannelUseCase
 import com.example.domain.use_cases.remote.GetUsersByPhoneNumbersUseCase
+import com.google.firebase.auth.ktx.auth
+import com.google.firebase.ktx.Firebase
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
@@ -111,19 +113,22 @@ class ContactsVM(
                     Log.d(TAG, "users in result ${result.value}")
 
                     for(user in result.value) {
-                        val contact = contacts.find {
-                            Log.e("asd", "${it.phoneNumbers}")
+                        val matchedContacts = contacts.filter {
                             it.phoneNumbers.map { it.replace(Regex("\\s|-"), "") }.contains(user.phone)
                         }
                         Log.e(TAG, "user $user")
-                        Log.e(TAG, "contact $contact")
+                        Log.e(TAG, "matchedContacts $matchedContacts")
                         Log.e(TAG, "===============================")
-                        contact?.user = user
+                        matchedContacts.forEach {
+                            it.user = user
+                        }
                     }
                 }
             }
             is Result.Failure -> {
-                Log.e(TAG, "error contacts ${result.throwable.message}")
+                val message = result.throwable.message.orEmpty()
+                Log.e(TAG, "error contacts $message")
+                setEffect { ContactsContract.Effect.ShowErrorMessage(message) }
             }
         }
 
@@ -135,7 +140,11 @@ class ContactsVM(
             val result = createChannelUseCase(selectedUserId)
             when(result) {
                 is Result.Success -> setEffect { ContactsContract.Effect.GoToChat(result.value) }
-                is Result.Failure -> {}
+                is Result.Failure -> {
+                    val message = result.throwable.message.orEmpty()
+                    Log.e(TAG, "error create channel $message")
+                    setEffect { ContactsContract.Effect.ShowErrorMessage(message)  }
+                }
             }
         }
     }
