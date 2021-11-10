@@ -23,6 +23,12 @@
 
     <string name="sign_in_error">Some error occurred</string>
 
+    <string name="delete_message">Delete message</string>
+
+    <string name="was_online">Was online</string>
+
+    <string name="add_to_contacts">Add to contacts</string>
+
     <string name="channels">Channels</string>
     <string name="contacts">Contacts</string>
     <string name="groups">Groups</string>

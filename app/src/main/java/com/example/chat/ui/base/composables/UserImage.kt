@@ -30,15 +30,9 @@ import com.canhub.cropper.CropImageOptions
 import com.canhub.cropper.CropImageView
 import com.example.data.mappers.toDataModel
 import com.example.domain.models.ChatUser
-import io.getstream.chat.android.client.models.User
 import io.getstream.chat.android.compose.ui.common.avatar.UserAvatar
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
-
-sealed class PhotoData(val value: Any) {
-    data class PhotoUrl(val url: String): PhotoData(url)
-    data class PhotoUri(val uri: Uri): PhotoData(uri)
-}
 
 class CustomImageVM(
     user: ChatUser?
@@ -124,9 +118,6 @@ fun CustomImage(
 
     when(user?.avatar) {
         is String -> {
-            /*val user = User("0")
-            user.image = (state as PhotoData.PhotoUrl).url
-            user.name = "Adk"*/
             UserAvatar(
                 user = user!!.toDataModel(),
                 modifier = avatarModifier

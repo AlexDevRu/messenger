@@ -10,6 +10,7 @@ import com.example.chat.ui.contacts.ContactsVM
 import com.example.chat.ui.phone.PhoneVM
 import com.example.chat.ui.settings.SettingsVM
 import com.example.chat.ui.users.UsersVM
+import com.example.chat.user_info.UserInfoVM
 import com.getstream.sdk.chat.viewmodel.messages.MessageListViewModel
 import org.koin.android.ext.koin.androidApplication
 import org.koin.androidx.viewmodel.dsl.viewModel
@@ -50,5 +51,9 @@ val viewModelModule = module {
 
     viewModel {
         NewAvatarSignUpVM(get())
+    }
+
+    viewModel {
+        UserInfoVM(androidApplication(), get())
     }
 }

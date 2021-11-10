@@ -23,6 +23,12 @@
 
     <string name="sign_in_error">Произошла ошибка</string>
 
+    <string name="delete_message">Удалить сообщение</string>
+
+    <string name="was_online">Был в сети</string>
+
+    <string name="add_to_contacts">Добавить в контакты</string>
+
     <string name="channels">Каналы</string>
     <string name="contacts">Контакты</string>
     <string name="groups">Группы</string>

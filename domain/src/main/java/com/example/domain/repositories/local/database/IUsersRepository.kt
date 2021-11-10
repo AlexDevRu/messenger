@@ -6,4 +6,5 @@ interface IUsersRepository {
     suspend fun getUserById(id: String): ChatUser?
     suspend fun saveUsers(users: List<ChatUser>)
     suspend fun saveUser(user: ChatUser)
+    suspend fun updatePhoneByUserId(uid: String, phoneNumber: String)
 }

@@ -19,6 +19,17 @@ fun Toolbar(
     @StringRes title: Int?,
     onBackPressed: () -> Unit
 ) {
+    Toolbar(
+        title = if(title != null) stringResource(title) else "",
+        onBackPressed = onBackPressed
+    )
+}
+
+@Composable
+fun Toolbar(
+    title: String,
+    onBackPressed: () -> Unit
+) {
     TopAppBar(
         modifier = Modifier.fillMaxWidth(),
         backgroundColor = MaterialTheme.colors.surface
@@ -27,6 +38,6 @@ fun Toolbar(
             imageVector = ImageVector.vectorResource(R.drawable.ic_baseline_arrow_back_24),
             onBackPressed = onBackPressed
         )
-        Text(if(title != null) stringResource(title) else "", fontSize = 18.sp)
+        Text(title, fontSize = 18.sp)
     }
 }

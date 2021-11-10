@@ -35,6 +35,9 @@ interface UserDao {
     @Insert(onConflict = OnConflictStrategy.REPLACE)
     suspend fun _savePhone(user: ChatUserPhoneEntity)
 
+    @Query("update users_phones set phone=:phoneNumber where userId=:uid")
+    suspend fun updatePhoneByUserId(uid: String, phoneNumber: String)
+
     @Query("select * from users where id=:id")
     suspend fun getUserById(id: String): ChatUserWithMetadata?
 

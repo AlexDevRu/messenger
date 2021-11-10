@@ -60,4 +60,8 @@ val useCaseModule = module {
     single {
         CreateChannelUseCase(get())
     }
+
+    single {
+        GetPhoneByUserIdUseCase(get(), get())
+    }
 }

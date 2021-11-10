@@ -1,6 +1,5 @@
 package com.example.chat.ui.main
 
-import android.util.Log
 import androidx.compose.material.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.platform.LocalContext
@@ -8,6 +7,7 @@ import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.dialog
 import androidx.navigation.compose.rememberNavController
+import androidx.navigation.navArgument
 import com.example.chat.R
 import com.example.chat.channels.ChannelsScreen
 import com.example.chat.ui.base.composables.CustomAlertDialog
@@ -15,13 +15,12 @@ import com.example.chat.ui.chat.ChannelScreen
 import com.example.chat.ui.contacts.ContactsScreen
 import com.example.chat.ui.edit_profile.EditProfileScreen
 import com.example.chat.ui.main.drawer.Drawer
-import com.example.chat.ui.models.DrawerMenuItem
-import com.example.chat.ui.models.Screen
-import com.example.chat.ui.models.channelCidArgName
+import com.example.chat.ui.models.*
 import com.example.chat.ui.phone.PhoneScreen
 import com.example.chat.ui.settings.SettingsScreen
 import com.example.chat.ui.settings.SettingsVM
 import com.example.chat.ui.users.UsersScreen
+import com.example.chat.user_info.UserInfoScreen
 import com.example.chat.utils.globalVM
 import com.example.data.mappers.toDataModel
 import kotlinx.coroutines.launch
@@ -83,8 +82,6 @@ fun MainScreen(
             context.globalVM().reloadCurrentUser()
         }
 
-        Log.d("asd", "user")
-
         ModalDrawer(
             drawerState = drawerState,
             drawerContent = {
@@ -134,7 +131,13 @@ fun MainScreen(
                 }
                 composable(Screen.Channel.route) {
                     val channelId = it.arguments?.getString(channelCidArgName)
-                    ChannelScreen(channelId!!, onBackPressed = { navController.navigateUp() })
+                    ChannelScreen(
+                        cid = channelId!!,
+                        onBackPressed = { navController.navigateUp() },
+                        onChannelAvatarClick = {
+                            navController.navigate(Screen.UserInfoScreen.createRoute(it))
+                        }
+                    )
                 }
                 composable(Screen.Users.route) {
                     UsersScreen(navController)
@@ -146,6 +149,14 @@ fun MainScreen(
                             viewModel.setEvent(MainContract.Event.OnUserUpdated(it))
                         }
                     )
+                }
+                composable(Screen.UserInfoScreen.route, arguments = listOf(
+                    navArgument(userArgName) {
+                        type = UserParamType()
+                    }
+                )) {
+                    val userArg = it.arguments!!.getParcelable<ChatUserArg>(userArgName)!!
+                    UserInfoScreen(user = userArg.toDomainModel(), onBackPressed = { navController.navigateUp() })
                 }
                 dialog(DrawerMenuItem.Logout.route) {
                     CustomAlertDialog(

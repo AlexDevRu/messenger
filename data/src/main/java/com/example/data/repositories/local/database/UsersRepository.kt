@@ -23,4 +23,7 @@ class UsersRepository(
     override suspend fun saveUser(user: ChatUser) {
         usersDao.saveUser(user.toEntity())
     }
+
+    override suspend fun updatePhoneByUserId(uid: String, phoneNumber: String)
+        = usersDao.updatePhoneByUserId(uid, phoneNumber)
 }

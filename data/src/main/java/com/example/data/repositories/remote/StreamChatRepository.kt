@@ -63,14 +63,19 @@ class StreamChatRepository(
             }
         }*/
 
-        client.connectAnonymousUser().execute()
+        val userIsConnected = client.getCurrentUser() != null
+
+        if(!userIsConnected) client.connectAnonymousUser().execute()
+
         val request = QueryUsersRequest(
             filter = Filters.eq("id", userId),
             offset = 0,
             limit = 1
         )
         val result = client.queryUsers(request).execute()
-        client.disconnect()
+
+        if(!userIsConnected) logout()
+
         return if(result.isSuccess) {
             val user = result.data().firstOrNull()
             user?.toDomainModel() ?: throw UserNotFoundException()

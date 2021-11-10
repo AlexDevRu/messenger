@@ -1,6 +1,8 @@
 package com.example.chat.ui.users
 
+import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
@@ -17,6 +19,7 @@ import androidx.paging.compose.items
 import com.example.chat.ui.models.Screen
 import com.example.data.mappers.toDataModel
 import io.getstream.chat.android.compose.ui.common.LoadingView
+import io.getstream.chat.android.compose.ui.theme.ChatTheme
 import kotlinx.coroutines.launch
 import org.koin.androidx.compose.getViewModel
 
@@ -65,8 +68,9 @@ fun UsersScreen(
 
         val lazyUsers = state.usersFlow.collectAsLazyPagingItems()
 
-        LazyColumn() {
-
+        LazyColumn(
+            modifier = Modifier.background(ChatTheme.colors.appBackground).fillMaxSize()
+        ) {
             items(lazyUsers) { user ->
                 UserItem(
                     user = user!!.toDataModel(),
