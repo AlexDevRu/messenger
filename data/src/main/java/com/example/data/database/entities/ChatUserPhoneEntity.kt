@@ -6,7 +6,7 @@ import androidx.room.PrimaryKey
 import java.util.*
 
 @Entity(
-    tableName = "users_images",
+    tableName = "users_phones",
     foreignKeys = [
         ForeignKey(
             entity = ChatUserEntity::class,
@@ -16,9 +16,9 @@ import java.util.*
         )
     ]
 )
-data class ChatUserImageEntity(
+data class ChatUserPhoneEntity(
     @PrimaryKey val id: UUID = UUID.randomUUID(),
-    val image: String? = null,
+    val phone: String? = null,
     val userId: String,
     val pending: Boolean = false
 )
