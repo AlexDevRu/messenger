@@ -8,7 +8,6 @@ import androidx.compose.material.rememberScaffoldState
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
@@ -16,7 +15,8 @@ import androidx.compose.ui.unit.sp
 import com.example.chat.R
 import com.example.chat.ui.base.composables.CustomImage
 import com.example.chat.ui.base.composables.ProgressButton
-import com.example.chat.utils.globalVM
+import com.example.data.mappers.toDomainModel
+import io.getstream.chat.android.offline.ChatDomain
 import kotlinx.coroutines.launch
 import org.koin.androidx.compose.getViewModel
 
@@ -34,14 +34,13 @@ fun NewAvatarSignUpScreen(
     viewModel: NewAvatarSignUpVM = getViewModel()
 ) {
 
-    val globalVM = LocalContext.current.globalVM()
-    val user by globalVM.user.collectAsState()
+    val user by ChatDomain.instance().user.collectAsState()
 
     val state by viewModel.uiState.collectAsState()
     val effect by viewModel.effect.collectAsState(null)
 
     LaunchedEffect(key1 = Unit) {
-        if(user != null) viewModel.setEvent(NewAvatarSignUpContract.Event.SetUserData(user!!))
+        if(user != null) viewModel.setEvent(NewAvatarSignUpContract.Event.SetUserData(user!!.toDomainModel()))
     }
 
     val scaffoldState = rememberScaffoldState()
@@ -53,7 +52,6 @@ fun NewAvatarSignUpScreen(
         LaunchedEffect(key1 = effect) {
             when(effect) {
                 is NewAvatarSignUpContract.Effect.UploadSuccessfully -> {
-                    globalVM.reloadCurrentUser()
                     onSuccess()
                 }
                 is NewAvatarSignUpContract.Effect.UploadFailure -> {

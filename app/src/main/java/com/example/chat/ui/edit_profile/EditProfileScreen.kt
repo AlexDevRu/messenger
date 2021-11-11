@@ -9,7 +9,6 @@ import androidx.compose.material.rememberScaffoldState
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
 import com.example.chat.R
 import com.example.chat.ui.base.composables.CustomImage
@@ -17,8 +16,9 @@ import com.example.chat.ui.base.composables.ProgressButton
 import com.example.chat.ui.base.composables.TextInputField
 import com.example.chat.ui.base.composables.Toolbar
 import com.example.chat.ui.models.Screen
-import com.example.chat.utils.globalVM
+import com.example.data.mappers.toDomainModel
 import com.example.domain.models.ChatUser
+import io.getstream.chat.android.offline.ChatDomain
 import kotlinx.coroutines.launch
 import org.koin.androidx.compose.getViewModel
 
@@ -30,8 +30,7 @@ fun EditProfileScreen(
     viewModel: EditProfileVM = getViewModel()
 ) {
 
-    val globalVM = LocalContext.current.globalVM()
-    val user by globalVM.user.collectAsState()
+    val user by ChatDomain.instance().user.collectAsState()
 
     val state by viewModel.uiState.collectAsState()
     val effect by viewModel.effect.collectAsState(null)
@@ -46,8 +45,8 @@ fun EditProfileScreen(
     LaunchedEffect(key1 = Unit) {
         Log.d("asd", "edit profile user ${user}")
         if(user != null) {
-            viewModel.customImageVM.setUser(user!!)
-            viewModel.userNameInputState.onValueChanged(user!!.userName)
+            viewModel.customImageVM.setUser(user!!.toDomainModel())
+            viewModel.userNameInputState.onValueChanged(user!!.name)
         }
 
     }

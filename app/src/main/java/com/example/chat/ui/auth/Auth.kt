@@ -13,7 +13,6 @@ import androidx.compose.material.rememberScaffoldState
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
@@ -29,7 +28,6 @@ import com.example.chat.ui.base.composables.CheckboxWithText
 import com.example.chat.ui.base.composables.ProgressButton
 import com.example.chat.ui.base.composables.TextInputField
 import com.example.chat.ui.phone.PhoneScreen
-import com.example.chat.utils.globalVM
 import com.example.domain.exceptions.WrongCredentialsException
 import kotlinx.coroutines.launch
 import org.koin.androidx.compose.getViewModel
@@ -79,7 +77,6 @@ fun AuthScreen(
     onSignUpSuccess: () -> Unit,
     viewModel: AuthVM = getViewModel()
 ) {
-    val globalVM = LocalContext.current.globalVM()
 
     val scrollState = rememberScrollState()
 
@@ -103,12 +100,10 @@ fun AuthScreen(
             when(effect) {
                 is AuthContract.Effect.SignInSuccess -> {
                     Log.d("asd", "SIGN IN USER ${(effect as AuthContract.Effect.SignInSuccess).user}")
-                    globalVM.reloadCurrentUser()
                     onSignInSuccess()
                 }
                 is AuthContract.Effect.SignUpSuccess -> {
                     Log.d("asd", "SIGN UP USER ${(effect as AuthContract.Effect.SignUpSuccess).user}")
-                    globalVM.reloadCurrentUser()
                     onSignUpSuccess()
                 }
                 is AuthContract.Effect.AuthFailure -> {

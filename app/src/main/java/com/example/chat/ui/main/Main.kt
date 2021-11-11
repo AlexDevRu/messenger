@@ -1,5 +1,6 @@
 package com.example.chat.ui.main
 
+import android.util.Log
 import androidx.compose.material.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.platform.LocalContext
@@ -78,7 +79,8 @@ fun MainScreen(
 
         val context = LocalContext.current
 
-        LaunchedEffect(key1 = mainState.user) {
+        LaunchedEffect(key1 = mainState) {
+            Log.d("asd", "user changed")
             context.globalVM().reloadCurrentUser()
         }
 
@@ -88,7 +90,22 @@ fun MainScreen(
                 Drawer(
                     onDestinationClick = { route ->
                         closeDrawer()
-                        navController.navigate(route)
+                        //navController.navigate(route)
+                        navController.navigate(route) {
+                            // Pop up to the start destination of the graph to
+                            // avoid building up a large stack of destinations
+                            // on the back stack as users select items
+                            navController.graph.startDestinationRoute?.let { route ->
+                                popUpTo(route) {
+                                    saveState = true
+                                }
+                            }
+                            // Avoid multiple copies of the same destination when
+                            // reselecting the same item
+                            launchSingleTop = true
+                            // Restore state when reselecting a previously selected item
+                            restoreState = true
+                        }
                     },
                     onEditProfileClick = {
                         closeDrawer()
@@ -107,7 +124,6 @@ fun MainScreen(
                     ChannelsScreen(
                         navController = navController,
                         openDrawer = { openDrawer() },
-                        currentUser = mainState.user?.toDataModel(),
                         loading = mainState.loading
                     )
                     activeRoute = DrawerMenuItem.Channels.route

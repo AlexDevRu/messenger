@@ -50,9 +50,6 @@ class MainVM(
                 is Result.Success -> {
                     Log.e(TAG, "current user fetched ${result.value}")
                     val user = result.value
-                    Log.e(TAG, "user name ${result.value?.userName}")
-                    Log.e(TAG, "user email ${result.value?.email}")
-                    Log.e(TAG, "user avatar ${result.value?.avatar}")
                     setState { copy(user = user) }
                 }
                 is Result.Failure -> setEffect { MainContract.Effect.ShowErrorSnackbar(result.throwable.message) }

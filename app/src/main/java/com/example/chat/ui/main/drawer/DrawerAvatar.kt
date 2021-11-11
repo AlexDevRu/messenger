@@ -8,13 +8,12 @@ import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import com.example.chat.utils.globalVM
-import com.example.data.mappers.toDataModel
+import com.example.data.extensions.email
 import io.getstream.chat.android.client.models.User
 import io.getstream.chat.android.compose.ui.common.avatar.UserAvatar
+import io.getstream.chat.android.offline.ChatDomain
 
 @Composable
 fun DrawerAvatar(
@@ -22,8 +21,7 @@ fun DrawerAvatar(
     loading: Boolean
 ) {
 
-    val globalVM = LocalContext.current.globalVM()
-    val user by globalVM.user.collectAsState()
+    val user by ChatDomain.instance().user.collectAsState()
 
     Column(
         modifier = modifier,
@@ -39,10 +37,10 @@ fun DrawerAvatar(
         } else {
             UserAvatar(
                 modifier = Modifier.size(100.dp),
-                user = user?.toDataModel() ?: User()
+                user = user ?: User()
             )
             Spacer(modifier = Modifier.height(14.dp))
-            Text(text = user?.userName.orEmpty(), fontSize = 20.sp)
+            Text(text = user?.name.orEmpty(), fontSize = 20.sp)
             Text(text = user?.email.orEmpty(), fontSize = 14.sp)
         }
     }

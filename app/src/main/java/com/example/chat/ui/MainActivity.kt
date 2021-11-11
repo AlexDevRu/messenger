@@ -28,8 +28,6 @@ class MainActivity: AppCompatActivity() {
 
     private val getLanguageUseCase by inject<GetLanguageUseCase>()
 
-    val globalVM by viewModel<GlobalVM>()
-
     @ExperimentalMaterialApi
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)

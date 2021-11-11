@@ -4,16 +4,18 @@ import com.example.data.database.entities.ChatUserEntity
 import com.example.data.database.entities.ChatUserImageEntity
 import com.example.data.database.entities.ChatUserPhoneEntity
 import com.example.data.database.entities.ChatUserWithMetadata
+import com.example.data.extensions.email
 import com.example.domain.models.ChatUser
 import io.getstream.chat.android.client.models.User
+
 
 fun User.toDomainModel(): ChatUser {
     return ChatUser(
         id = id,
-        email = extraData["email"].toString(),
-        userName = extraData["name"].toString(),
-        avatar = extraData["image"].toString(),
-        lastActive = lastActive
+        email = email,
+        userName = name,
+        avatar = image,
+        lastActive = lastActive,
     )
 }
 
@@ -21,9 +23,7 @@ fun ChatUser.toDataModel(): User {
     val user = User(id = id)
     user.name = userName
     user.image = if(avatar == null) "" else avatar.toString()
-    user.extraData["image"] = if(avatar == null) "" else avatar.toString()
-    user.extraData["name"] = userName
-    user.extraData["email"] = email
+    user.email = email
     user.lastActive = lastActive
     return user
 }

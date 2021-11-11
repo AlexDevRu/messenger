@@ -10,5 +10,3 @@ fun Context.getActivity(): AppCompatActivity? = when (this) {
     is ContextWrapper -> baseContext.getActivity()
     else -> null
 }
-
-fun Context.globalVM() = (getActivity() as MainActivity).globalVM

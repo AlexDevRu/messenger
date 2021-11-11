@@ -4,6 +4,8 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
 import androidx.lifecycle.viewmodel.compose.viewModel
@@ -14,11 +16,9 @@ import com.example.chat.ui.models.Screen
 import io.getstream.chat.android.client.ChatClient
 import io.getstream.chat.android.client.api.models.QuerySort
 import io.getstream.chat.android.client.models.Filters
-import io.getstream.chat.android.client.models.User
 import io.getstream.chat.android.compose.ui.channel.header.ChannelListHeader
 import io.getstream.chat.android.compose.ui.channel.list.ChannelList
 import io.getstream.chat.android.compose.ui.common.LoadingView
-import io.getstream.chat.android.compose.ui.messages.MessagesScreen
 import io.getstream.chat.android.compose.viewmodel.channel.ChannelViewModelFactory
 import io.getstream.chat.android.offline.ChatDomain
 
@@ -27,9 +27,10 @@ import io.getstream.chat.android.offline.ChatDomain
 fun ChannelsScreen(
     navController: NavController,
     openDrawer: () -> Unit = {},
-    currentUser: User? = null,
     loading: Boolean = true
 ) {
+
+    val currentUser by ChatDomain.instance().user.collectAsState()
 
     Column {
         ChannelListHeader(modifier = Modifier.fillMaxWidth(),
@@ -59,7 +60,7 @@ fun ChannelsScreen(
                         QuerySort.desc("last_updated"),
                         Filters.and(
                             Filters.eq("type", "messaging"),
-                            Filters.`in`("members", listOf(currentUser.id))
+                            Filters.`in`("members", listOf(currentUser!!.id))
                         )
                     )
                 ),

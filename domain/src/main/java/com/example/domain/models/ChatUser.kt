@@ -8,5 +8,5 @@ data class ChatUser(
     var userName: String = "",
     var phone: String? = null,
     var avatar: Any? = null,
-    var lastActive: Date? = null
+    var lastActive: Date? = null,
 )

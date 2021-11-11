@@ -1,6 +1,5 @@
 package com.example.chat.ui.users
 
-import androidx.activity.compose.BackHandler
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -39,8 +38,6 @@ fun UsersToolbar(
         if(searchExpanded) searchExpanded = false
         else onBackPressed()
     }
-
-    //BackHandler(onBack = onBack)
 
     TopAppBar(
         modifier = Modifier.fillMaxWidth(),
