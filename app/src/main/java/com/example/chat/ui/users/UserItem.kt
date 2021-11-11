@@ -32,9 +32,15 @@ fun UserItem(
             horizontalArrangement = Arrangement.spacedBy(8.dp)
         ) {
             UserAvatar(user = user, modifier = Modifier.size(40.dp))
-            Column() {
-                Text(text = user.name, fontSize = 16.sp, fontWeight = FontWeight.Bold)
-                Text(text = user.lastActive.toReadableString(), fontSize = 12.sp)
+            Column {
+                Text(
+                    text = if(user.name.isEmpty()) user.id else user.name,
+                    fontSize = 16.sp, fontWeight = FontWeight.Bold
+                )
+                Text(
+                    text = user.lastActive.toReadableString(),
+                    fontSize = 12.sp
+                )
             }
         }
     }
