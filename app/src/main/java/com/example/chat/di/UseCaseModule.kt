@@ -38,7 +38,7 @@ val useCaseModule = module {
     }
 
     single {
-        UpdateUserUseCase(get(), get(), get())
+        UpdateUserUseCase(get(), get(), get(), get())
     }
 
     single {
