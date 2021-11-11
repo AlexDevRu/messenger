@@ -21,9 +21,14 @@ class FirebaseAuthRepository: IFirebaseAuthRepository {
         return task.user?.uid ?: throw UserNotFoundException()
     }
 
-    override suspend fun createNewUser(email: String, password: String): String {
-        val task = auth.createUserWithEmailAndPassword(email, password).await()
-        return task.user?.uid ?: throw UserNotFoundException()
+    override suspend fun createNewUser(email: String, userName: String, password: String): String {
+        auth.createUserWithEmailAndPassword(email, password).await()
+        auth.currentUser!!.updateProfile(
+            UserProfileChangeRequest.Builder().apply {
+                displayName = userName
+            }.build()
+        ).await()
+        return auth.currentUser?.uid ?: throw UserNotFoundException()
     }
 
     override suspend fun linkWithCredentials(verificationId: String, smsCode: String) {

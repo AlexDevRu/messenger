@@ -16,7 +16,7 @@ class SignUpUserUseCase(
 
     suspend operator fun invoke(email: String, password: String, userName: String, rememberMe: Boolean): Result<ChatUser> {
         return try {
-            val uid = firebaseAuthRepository.createNewUser(email, password)
+            val uid = firebaseAuthRepository.createNewUser(email, userName, password)
             val user = streamRepository.connectUser(uid, userName, email)
             usersRepository.saveUser(user)
             preferencesRepository.saveUser(if(rememberMe) uid else null)
