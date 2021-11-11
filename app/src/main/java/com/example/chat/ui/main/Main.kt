@@ -1,17 +1,15 @@
 package com.example.chat.ui.main
 
-import android.util.Log
 import androidx.compose.material.*
 import androidx.compose.runtime.*
-import androidx.compose.ui.platform.LocalContext
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.dialog
 import androidx.navigation.compose.rememberNavController
 import androidx.navigation.navArgument
 import com.example.chat.R
-import com.example.chat.ui.channels.ChannelsScreen
 import com.example.chat.ui.base.composables.CustomAlertDialog
+import com.example.chat.ui.channels.ChannelsScreen
 import com.example.chat.ui.chat.ChannelScreen
 import com.example.chat.ui.contacts.ContactsScreen
 import com.example.chat.ui.edit_profile.EditProfileScreen
@@ -22,8 +20,6 @@ import com.example.chat.ui.settings.SettingsScreen
 import com.example.chat.ui.settings.SettingsVM
 import com.example.chat.ui.users.UsersScreen
 import com.example.chat.user_info.UserInfoScreen
-import com.example.chat.utils.globalVM
-import com.example.data.mappers.toDataModel
 import kotlinx.coroutines.launch
 import org.koin.androidx.compose.getViewModel
 
@@ -75,13 +71,6 @@ fun MainScreen(
                     }
                 }
             }
-        }
-
-        val context = LocalContext.current
-
-        LaunchedEffect(key1 = mainState) {
-            Log.d("asd", "user changed")
-            context.globalVM().reloadCurrentUser()
         }
 
         ModalDrawer(
