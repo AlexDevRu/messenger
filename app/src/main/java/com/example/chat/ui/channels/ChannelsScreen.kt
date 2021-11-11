@@ -1,4 +1,4 @@
-package com.example.chat.channels
+package com.example.chat.ui.channels
 
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
@@ -18,6 +18,7 @@ import io.getstream.chat.android.client.models.User
 import io.getstream.chat.android.compose.ui.channel.header.ChannelListHeader
 import io.getstream.chat.android.compose.ui.channel.list.ChannelList
 import io.getstream.chat.android.compose.ui.common.LoadingView
+import io.getstream.chat.android.compose.ui.messages.MessagesScreen
 import io.getstream.chat.android.compose.viewmodel.channel.ChannelViewModelFactory
 import io.getstream.chat.android.offline.ChatDomain
 

@@ -1,7 +1,7 @@
 package com.example.chat.ui.chat
 
 import android.Manifest
-import android.util.Log
+import androidx.activity.compose.BackHandler
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.animation.*
@@ -19,7 +19,6 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.example.chat.R
-import com.example.chat.ui.base.composables.BackHandler
 import com.example.data.mappers.toDomainModel
 import com.example.domain.models.ChatUser
 import io.getstream.chat.android.client.ChatClient
@@ -74,8 +73,6 @@ fun ChannelScreen(
         )
     }
 
-    Log.e("asd", "currentUser ${ChatClient.instance().getCurrentUser()}")
-
     if(granted) {
         val factory = MessagesViewModelFactory(
             LocalContext.current,
@@ -92,17 +89,29 @@ fun ChannelScreen(
 
         val user by listViewModel.user.collectAsState()
 
+        val isNetworkAvailable by listViewModel.isOnline.collectAsState()
+
         val currentUser = ChatClient.instance().getCurrentUser()
 
         val onBack = {
-            if(listViewModel.channel.messages.isNullOrEmpty()) {
-                viewModel.deleteChannel(listViewModel.channel.cid)
+            val isInThread = listViewModel.isInThread
+            val isShowingOverlay = listViewModel.isShowingOverlay
+
+            when {
+                attachmentsPickerViewModel.isShowingAttachments -> attachmentsPickerViewModel.changeAttachmentState(false)
+                isShowingOverlay -> listViewModel.selectMessage(null)
+                isInThread -> {
+                    listViewModel.leaveThread()
+                    composerViewModel.leaveThread()
+                }
+                else -> {
+                    if(listViewModel.channel.messages.isNullOrEmpty()) {
+                        viewModel.deleteChannel(listViewModel.channel.cid)
+                    }
+                    onBackPressed()
+                }
             }
-            onBackPressed()
         }
-
-        BackHandler(onBack = onBack)
-
 
         Box(modifier = Modifier.fillMaxSize()) {
             Scaffold(
@@ -113,6 +122,7 @@ fun ChannelScreen(
                         channel = listViewModel.channel,
                         currentUser = currentUser,
                         onBackPressed = onBack,
+                        isNetworkAvailable = isNetworkAvailable,
                         trailingContent = {
                             ChannelAvatar(
                                 modifier = Modifier
@@ -135,6 +145,9 @@ fun ChannelScreen(
                             .fillMaxWidth()
                             .wrapContentHeight()
                             .align(Alignment.Center),
+                        onValueChange = {
+                            composerViewModel.setMessageInput(it)
+                        },
                         viewModel = composerViewModel,
                         onAttachmentsClick = { attachmentsPickerViewModel.changeAttachmentState(true) },
                         onCancelAction = {
@@ -144,6 +157,9 @@ fun ChannelScreen(
                     )
                 }
             ) {
+                LocalContext.current
+                BackHandler(onBack = onBack)
+
                 MessageList(
                     modifier = Modifier
                         .fillMaxSize()

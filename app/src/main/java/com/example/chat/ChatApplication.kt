@@ -1,11 +1,11 @@
 package com.example.chat
 
 import android.app.Application
-import androidx.paging.ExperimentalPagingApi
 import com.example.chat.di.dataModule
 import com.example.chat.di.databaseModule
 import com.example.chat.di.useCaseModule
 import com.example.chat.di.viewModelModule
+import com.example.chat.firebase.MyNotificationHandler
 import io.getstream.chat.android.client.ChatClient
 import io.getstream.chat.android.client.logger.ChatLogLevel
 import io.getstream.chat.android.client.notifications.handler.NotificationConfig
@@ -23,9 +23,11 @@ class ChatApplication: Application() {
             pushDeviceGenerators = listOf(FirebasePushDeviceGenerator())
         )
 
+        val notificationHandler = MyNotificationHandler(this)
+
         val client = ChatClient.Builder(getString(R.string.api_key), this)
             .logLevel(ChatLogLevel.ALL)
-            .notifications(notificationConfig)
+            .notifications(notificationConfig, notificationHandler)
             .build()
 
         // Step 2 - Set up the domain for offline storage

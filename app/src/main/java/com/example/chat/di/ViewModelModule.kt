@@ -46,7 +46,7 @@ val viewModelModule = module {
     }
 
     viewModel {
-        GlobalVM(get(), get())
+        GlobalVM()
     }
 
     viewModel {

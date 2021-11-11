@@ -18,6 +18,15 @@
         android:roundIcon="@mipmap/ic_launcher_round"
         android:supportsRtl="true"
         android:theme="@style/Theme.Chat">
+
+        <meta-data
+            android:name="com.google.firebase.messaging.default_notification_icon"
+            android:resource="@drawable/ic_launcher_foreground" />
+
+        <meta-data
+            android:name="com.google.firebase.messaging.default_notification_channel_id"
+            android:value="@string/stream_chat_notification_channel_id" />
+
         <activity
             android:name=".ui.MainActivity"
             android:windowSoftInputMode="adjustResize"
@@ -28,6 +37,7 @@
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>
+
         <activity android:name="com.canhub.cropper.CropImageActivity"
             android:theme="@style/Base.Theme.AppCompat"/>
     </application>

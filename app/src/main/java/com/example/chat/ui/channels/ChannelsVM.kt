@@ -1,7 +1,6 @@
-package com.example.chat.channels
+package com.example.chat.ui.channels
 
 import androidx.lifecycle.viewModelScope
-import com.example.chat.channels.ChannelsContract
 import com.example.chat.ui.base.BaseViewModel
 import io.getstream.chat.android.client.api.models.QuerySort
 import io.getstream.chat.android.client.call.Call

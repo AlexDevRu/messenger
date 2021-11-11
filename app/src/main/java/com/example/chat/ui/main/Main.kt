@@ -9,7 +9,7 @@ import androidx.navigation.compose.dialog
 import androidx.navigation.compose.rememberNavController
 import androidx.navigation.navArgument
 import com.example.chat.R
-import com.example.chat.channels.ChannelsScreen
+import com.example.chat.ui.channels.ChannelsScreen
 import com.example.chat.ui.base.composables.CustomAlertDialog
 import com.example.chat.ui.chat.ChannelScreen
 import com.example.chat.ui.contacts.ContactsScreen

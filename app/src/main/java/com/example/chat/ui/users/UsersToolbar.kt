@@ -1,5 +1,6 @@
 package com.example.chat.ui.users
 
+import androidx.activity.compose.BackHandler
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -19,7 +20,6 @@ import androidx.compose.ui.res.vectorResource
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.example.chat.R
-import com.example.chat.ui.base.composables.BackHandler
 import com.example.chat.ui.models.Screen
 import io.getstream.chat.android.compose.ui.common.BackButton
 import io.getstream.chat.android.compose.ui.common.SearchInput
@@ -40,7 +40,7 @@ fun UsersToolbar(
         else onBackPressed()
     }
 
-    BackHandler(onBack = onBack)
+    //BackHandler(onBack = onBack)
 
     TopAppBar(
         modifier = Modifier.fillMaxWidth(),
