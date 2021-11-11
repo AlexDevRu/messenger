@@ -2,6 +2,8 @@ package com.example.chat.ui.main
 
 import androidx.compose.material.*
 import androidx.compose.runtime.*
+import androidx.navigation.NavController
+import androidx.navigation.NavHostController
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.dialog

@@ -2,7 +2,6 @@ package com.example.chat.ui.phone
 
 import android.util.Log
 import androidx.annotation.StringRes
-import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
@@ -19,7 +18,6 @@ import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
 import com.example.chat.R
-import io.getstream.chat.android.compose.ui.theme.ChatTheme
 import kotlinx.coroutines.launch
 import org.koin.androidx.compose.getViewModel
 

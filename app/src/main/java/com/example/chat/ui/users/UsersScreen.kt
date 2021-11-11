@@ -1,13 +1,12 @@
 package com.example.chat.ui.users
 
-import androidx.activity.compose.BackHandler
-import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.material.Scaffold
+import androidx.compose.material.Surface
 import androidx.compose.material.Text
 import androidx.compose.material.rememberScaffoldState
 import androidx.compose.runtime.*
@@ -69,56 +68,50 @@ fun UsersScreen(
 
         val lazyUsers = state.usersFlow.collectAsLazyPagingItems()
 
-        LazyColumn(
-            modifier = Modifier.background(ChatTheme.colors.appBackground).fillMaxSize()
+        Surface(
+            modifier = Modifier.fillMaxSize(),
+            color = ChatTheme.colors.appBackground
         ) {
-            items(lazyUsers) { user ->
-                UserItem(
-                    user = user!!.toDataModel(),
-                    modifier = Modifier.fillMaxWidth(),
-                    onClick = {
-                        viewModel.setEvent(UsersContract.Event.OnUserClick(user.id))
-                    }
-                )
-            }
+            LazyColumn {
+                items(lazyUsers) { user ->
+                    UserItem(
+                        user = user!!.toDataModel(),
+                        modifier = Modifier.fillMaxWidth(),
+                        onClick = {
+                            viewModel.setEvent(UsersContract.Event.OnUserClick(user.id))
+                        }
+                    )
+                }
 
-            lazyUsers.apply {
-                when {
-                    loadState.refresh is LoadState.Loading -> {
-                        item { LoadingView(modifier = Modifier.fillParentMaxSize()) }
-                    }
-                    loadState.append is LoadState.Loading -> {
-                        item {
-                            LoadingView(
-                                modifier = Modifier.fillMaxWidth().padding(8.dp)
-                            )
+                lazyUsers.apply {
+                    when {
+                        loadState.refresh is LoadState.Loading -> {
+                            item { LoadingView(modifier = Modifier.fillParentMaxSize()) }
                         }
-                    }
-                    loadState.refresh is LoadState.Error -> {
-                        val e = lazyUsers.loadState.refresh as LoadState.Error
-                        item {
-                            Text(
-                                text = e.error.message.orEmpty(),
-                                modifier = Modifier.fillParentMaxSize().clickable { retry() }
-                            )
-                            /*ErrorItem(
-                                message = e.error.localizedMessage!!,
-                                modifier = Modifier.fillParentMaxSize(),
-                                onClickRetry = { retry() }
-                            )*/
+                        loadState.append is LoadState.Loading -> {
+                            item {
+                                LoadingView(
+                                    modifier = Modifier.fillMaxWidth().padding(8.dp)
+                                )
+                            }
                         }
-                    }
-                    loadState.append is LoadState.Error -> {
-                        val e = lazyUsers.loadState.append as LoadState.Error
-                        item {
-                            Text(
-                                text = e.error.message.orEmpty(),
-                                modifier = Modifier.fillMaxWidth().padding(8.dp).clickable { retry() }
-                            )
-                            /*ErrorItem(
-                                message = e.error.localizedMessage!!,
-                                onClickRetry = { retry() }
-                            )*/
+                        loadState.refresh is LoadState.Error -> {
+                            val e = lazyUsers.loadState.refresh as LoadState.Error
+                            item {
+                                Text(
+                                    text = e.error.message.orEmpty(),
+                                    modifier = Modifier.fillMaxWidth().clickable { retry() }
+                                )
+                            }
+                        }
+                        loadState.append is LoadState.Error -> {
+                            val e = lazyUsers.loadState.append as LoadState.Error
+                            item {
+                                Text(
+                                    text = e.error.message.orEmpty(),
+                                    modifier = Modifier.fillMaxWidth().padding(8.dp).clickable { retry() }
+                                )
+                            }
                         }
                     }
                 }
