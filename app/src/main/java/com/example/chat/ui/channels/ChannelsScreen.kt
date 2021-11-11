@@ -32,9 +32,12 @@ fun ChannelsScreen(
 
     val currentUser by ChatDomain.instance().user.collectAsState()
 
+    val isOnline by ChatDomain.instance().online.collectAsState()
+
     Column {
         ChannelListHeader(modifier = Modifier.fillMaxWidth(),
             currentUser = currentUser,
+            isNetworkAvailable = isOnline,
             leadingContent = {
                 CustomIconButton(
                     iconRes = R.drawable.ic_baseline_menu_24,
