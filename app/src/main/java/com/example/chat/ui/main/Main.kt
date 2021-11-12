@@ -41,20 +41,47 @@ fun MainScreen(
     val scaffoldState = rememberScaffoldState()
     val snackbarCoroutineScope = rememberCoroutineScope()
 
+    val scope = rememberCoroutineScope()
+
+    val openDrawer = {
+        scope.launch { scaffoldState.drawerState.open() }
+    }
+
+    val closeDrawer = {
+        scope.launch { scaffoldState.drawerState.close() }
+    }
+
     Scaffold(
-        scaffoldState = scaffoldState
+        scaffoldState = scaffoldState,
+        drawerContent = {
+            Drawer(
+                onDestinationClick = { route ->
+                    closeDrawer()
+                    navController.navigate(route) {
+                        // Pop up to the start destination of the graph to
+                        // avoid building up a large stack of destinations
+                        // on the back stack as users select items
+                        navController.graph.startDestinationRoute?.let { route ->
+                            popUpTo(route) {
+                                saveState = true
+                            }
+                        }
+                        // Avoid multiple copies of the same destination when
+                        // reselecting the same item
+                        launchSingleTop = true
+                        // Restore state when reselecting a previously selected item
+                        restoreState = true
+                    }
+                },
+                onEditProfileClick = {
+                    closeDrawer()
+                    navController.navigate(Screen.EditProfile.route)
+                },
+                userIsLoading = mainState.loading,
+                activeRoute = activeRoute.orEmpty()
+            )
+        }
     ) {
-
-        val drawerState = rememberDrawerState(DrawerValue.Closed)
-        val scope = rememberCoroutineScope()
-
-        val openDrawer = {
-            scope.launch { drawerState.open() }
-        }
-        val closeDrawer = {
-            scope.launch { drawerState.close() }
-        }
-
         LaunchedEffect(key1 = effect) {
             when(effect) {
                 MainContract.Effect.Logout -> {
@@ -72,121 +99,88 @@ fun MainScreen(
             }
         }
 
-        ModalDrawer(
-            drawerState = drawerState,
-            drawerContent = {
-                Drawer(
-                    onDestinationClick = { route ->
-                        closeDrawer()
-                        //navController.navigate(route)
-                        navController.navigate(route) {
-                            // Pop up to the start destination of the graph to
-                            // avoid building up a large stack of destinations
-                            // on the back stack as users select items
-                            navController.graph.startDestinationRoute?.let { route ->
-                                popUpTo(route) {
-                                    saveState = true
-                                }
-                            }
-                            // Avoid multiple copies of the same destination when
-                            // reselecting the same item
-                            launchSingleTop = true
-                            // Restore state when reselecting a previously selected item
-                            restoreState = true
-                        }
-                    },
-                    onEditProfileClick = {
-                        closeDrawer()
-                        navController.navigate(Screen.EditProfile.route)
-                    },
-                    userIsLoading = mainState.loading,
-                    activeRoute = activeRoute.orEmpty()
+        NavHost(
+            navController = navController,
+            startDestination = DrawerMenuItem.Channels.route
+        ) {
+            composable(DrawerMenuItem.Channels.route) {
+                ChannelsScreen(
+                    navController = navController,
+                    openDrawer = { openDrawer() },
+                    loading = mainState.loading
+                )
+                activeRoute = DrawerMenuItem.Channels.route
+            }
+            composable(DrawerMenuItem.Phone.route) {
+                PhoneScreen(onSkip = { navController.navigateUp() }, onSuccess = {
+                    navController.navigateUp()
+                }, cancelLabel = R.string.cancel)
+                activeRoute = DrawerMenuItem.Phone.route
+            }
+            composable(DrawerMenuItem.Contacts.route) {
+                ContactsScreen(
+                    onBackPressed = { navController.navigateUp() },
+                    goToChannel = { navController.navigate(Screen.Channel.createRoute(it)) }
+                )
+                activeRoute = DrawerMenuItem.Contacts.route
+            }
+            composable(DrawerMenuItem.Settings.route) {
+                SettingsScreen(onBackPressed = { navController.navigateUp() }, settingsVM)
+                activeRoute = DrawerMenuItem.Settings.route
+            }
+            composable(Screen.Channel.route) {
+                val channelId = it.arguments?.getString(channelCidArgName)
+                ChannelScreen(
+                    cid = channelId!!,
+                    onBackPressed = { navController.navigateUp() },
+                    onChannelAvatarClick = { chatUser ->
+                        navController.currentBackStackEntry?.savedStateHandle?.set(userArgName, chatUser.toArg())
+                        navController.navigate(Screen.UserInfoScreen.route)
+                    }
                 )
             }
-        ) {
-            NavHost(
-                navController = navController,
-                startDestination = DrawerMenuItem.Channels.route
-            ) {
-                composable(DrawerMenuItem.Channels.route) {
-                    ChannelsScreen(
-                        navController = navController,
-                        openDrawer = { openDrawer() },
-                        loading = mainState.loading
-                    )
-                    activeRoute = DrawerMenuItem.Channels.route
-                }
-                composable(DrawerMenuItem.Phone.route) {
-                    PhoneScreen(onSkip = { navController.navigateUp() }, onSuccess = {
+            composable(Screen.Users.route) {
+                UsersScreen(navController)
+            }
+            composable(Screen.EditProfile.route) {
+                EditProfileScreen(
+                    onCancel = { navController.navigateUp() },
+                    onSuccess = {
+                        viewModel.setEvent(MainContract.Event.OnUserUpdated(it))
+                    }
+                )
+            }
+            composable(Screen.UserInfoScreen.route) {
+                val userArg = navController.previousBackStackEntry
+                    ?.savedStateHandle?.get<ChatUserArg>(userArgName)
+                if(userArg != null)
+                    UserInfoScreen(user = userArg.toDomainModel(), onBackPressed = { navController.navigateUp() })
+            }
+            dialog(DrawerMenuItem.Logout.route) {
+                CustomAlertDialog(
+                    title = R.string.logout_question,
+                    text = R.string.logout_confirm,
+                    confirmButtonText = R.string.logout,
+                    dismissButtonText = R.string.dismiss,
+                    onConfirm = { viewModel.setEvent(MainContract.Event.OnLogout) },
+                    onDismiss = { navController.navigateUp() }
+                )
+            }
+            dialog(Screen.DeleteChannel.route) {
+
+                val cid = it.arguments?.getString(channelCidArgName)!!
+
+                CustomAlertDialog(
+                    title = R.string.delete_channel_dialog_title,
+                    text = R.string.delete_channel_dialog_text,
+                    confirmButtonText = R.string.delete_channel_confirm,
+                    dismissButtonText = R.string.dismiss,
+                    onConfirm = {
+                        viewModel.deleteChannel(cid)
                         navController.navigateUp()
-                    }, cancelLabel = R.string.cancel)
-                    activeRoute = DrawerMenuItem.Phone.route
-                }
-                composable(DrawerMenuItem.Contacts.route) {
-                    ContactsScreen(
-                        onBackPressed = { navController.navigateUp() },
-                        goToChannel = { navController.navigate(Screen.Channel.createRoute(it)) }
-                    )
-                    activeRoute = DrawerMenuItem.Contacts.route
-                }
-                composable(DrawerMenuItem.Settings.route) {
-                    SettingsScreen(onBackPressed = { navController.navigateUp() }, settingsVM)
-                    activeRoute = DrawerMenuItem.Settings.route
-                }
-                composable(Screen.Channel.route) {
-                    val channelId = it.arguments?.getString(channelCidArgName)
-                    ChannelScreen(
-                        cid = channelId!!,
-                        onBackPressed = { navController.navigateUp() },
-                        onChannelAvatarClick = { chatUser ->
-                            navController.currentBackStackEntry?.savedStateHandle?.set(userArgName, chatUser.toArg())
-                            navController.navigate(Screen.UserInfoScreen.route)
-                        }
-                    )
-                }
-                composable(Screen.Users.route) {
-                    UsersScreen(navController)
-                }
-                composable(Screen.EditProfile.route) {
-                    EditProfileScreen(
-                        onCancel = { navController.navigateUp() },
-                        onSuccess = {
-                            viewModel.setEvent(MainContract.Event.OnUserUpdated(it))
-                        }
-                    )
-                }
-                composable(Screen.UserInfoScreen.route) {
-                    val userArg = navController.previousBackStackEntry
-                        ?.savedStateHandle?.get<ChatUserArg>(userArgName)
-                    if(userArg != null)
-                        UserInfoScreen(user = userArg.toDomainModel(), onBackPressed = { navController.navigateUp() })
-                }
-                dialog(DrawerMenuItem.Logout.route) {
-                    CustomAlertDialog(
-                        title = R.string.logout_question,
-                        text = R.string.logout_confirm,
-                        confirmButtonText = R.string.logout,
-                        dismissButtonText = R.string.dismiss,
-                        onConfirm = { viewModel.setEvent(MainContract.Event.OnLogout) },
-                        onDismiss = { navController.navigateUp() }
-                    )
-                }
-                dialog(Screen.DeleteChannel.route) {
-
-                    val cid = it.arguments?.getString(channelCidArgName)!!
-
-                    CustomAlertDialog(
-                        title = R.string.delete_channel_dialog_title,
-                        text = R.string.delete_channel_dialog_text,
-                        confirmButtonText = R.string.delete_channel_confirm,
-                        dismissButtonText = R.string.dismiss,
-                        onConfirm = {
-                            viewModel.deleteChannel(cid)
-                            navController.navigateUp()
-                        },
-                        onDismiss = { navController.navigateUp() }
-                    )
-                }
+                    },
+                    onDismiss = { navController.navigateUp() }
+                )
             }
         }
     }
