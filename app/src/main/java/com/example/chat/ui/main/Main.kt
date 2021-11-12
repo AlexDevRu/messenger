@@ -2,13 +2,10 @@ package com.example.chat.ui.main
 
 import androidx.compose.material.*
 import androidx.compose.runtime.*
-import androidx.navigation.NavController
-import androidx.navigation.NavHostController
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.dialog
 import androidx.navigation.compose.rememberNavController
-import androidx.navigation.navArgument
 import com.example.chat.R
 import com.example.chat.ui.base.composables.CustomAlertDialog
 import com.example.chat.ui.channels.ChannelsScreen
@@ -141,8 +138,9 @@ fun MainScreen(
                     ChannelScreen(
                         cid = channelId!!,
                         onBackPressed = { navController.navigateUp() },
-                        onChannelAvatarClick = {
-                            navController.navigate(Screen.UserInfoScreen.createRoute(it))
+                        onChannelAvatarClick = { chatUser ->
+                            navController.currentBackStackEntry?.savedStateHandle?.set(userArgName, chatUser.toArg())
+                            navController.navigate(Screen.UserInfoScreen.route)
                         }
                     )
                 }
@@ -157,13 +155,11 @@ fun MainScreen(
                         }
                     )
                 }
-                composable(Screen.UserInfoScreen.route, arguments = listOf(
-                    navArgument(userArgName) {
-                        type = UserParamType()
-                    }
-                )) {
-                    val userArg = it.arguments!!.getParcelable<ChatUserArg>(userArgName)!!
-                    UserInfoScreen(user = userArg.toDomainModel(), onBackPressed = { navController.navigateUp() })
+                composable(Screen.UserInfoScreen.route) {
+                    val userArg = navController.previousBackStackEntry
+                        ?.savedStateHandle?.get<ChatUserArg>(userArgName)
+                    if(userArg != null)
+                        UserInfoScreen(user = userArg.toDomainModel(), onBackPressed = { navController.navigateUp() })
                 }
                 dialog(DrawerMenuItem.Logout.route) {
                     CustomAlertDialog(
