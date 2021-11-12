@@ -3,12 +3,14 @@ package com.example.chat.ui.edit_profile
 import android.util.Log
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.Scaffold
 import androidx.compose.material.rememberScaffoldState
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
 import com.example.chat.R
 import com.example.chat.ui.base.composables.CustomImage
@@ -43,12 +45,10 @@ fun EditProfileScreen(
     val userNameInvalid by viewModel.userNameInputState.hasErrorsOrEmpty.collectAsState()
 
     LaunchedEffect(key1 = Unit) {
-        Log.d("asd", "edit profile user ${user}")
         if(user != null) {
             viewModel.customImageVM.setUser(user!!.toDomainModel())
             viewModel.userNameInputState.onValueChanged(user!!.name)
         }
-
     }
 
     Scaffold(
@@ -88,6 +88,14 @@ fun EditProfileScreen(
             )
 
             Spacer(modifier = Modifier.height(16.dp))
+
+            /*TextInputField(
+                modifier = Modifier.fillMaxWidth(),
+                label = R.string.email,
+                textFieldVM = viewModel.emailInputState,
+                enabled = !state.applyChangedInProgress,
+                keyboardOptions = KeyboardOptions.Default.copy(keyboardType = KeyboardType.Email)
+            )*/
 
             TextInputField(
                 modifier = Modifier.fillMaxWidth(),

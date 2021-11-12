@@ -1,20 +1,12 @@
 package com.example.chat.ui.edit_profile
 
-import android.util.Log
 import androidx.lifecycle.viewModelScope
-import com.example.chat.ui.auth.AuthVM
 import com.example.chat.ui.base.BaseViewModel
 import com.example.chat.ui.base.composables.CustomImageVM
 import com.example.chat.ui.base.composables.TextFieldVM
 import com.example.chat.ui.validation.InputValidator
-import com.example.data.mappers.toDomainModel
 import com.example.domain.common.Result
 import com.example.domain.use_cases.remote.UpdateUserUseCase
-import com.google.firebase.auth.ktx.auth
-import com.google.firebase.ktx.Firebase
-import io.getstream.chat.android.client.ChatClient
-import io.getstream.chat.android.client.api.models.QueryUsersRequest
-import io.getstream.chat.android.client.models.Filters
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 
@@ -28,8 +20,6 @@ class EditProfileVM(
         private const val minCharacters = 4
         private const val maxCharacters = 20
     }
-
-    private val client = ChatClient.instance()
 
     private val userNameValidators = listOf(
         InputValidator.LessCharactersValidator(minCharacters)
