@@ -91,8 +91,6 @@ fun ChannelScreen(
 
         val isNetworkAvailable by listViewModel.isOnline.collectAsState()
 
-        val currentUser = ChatClient.instance().getCurrentUser()
-
         val onBack = {
             val isInThread = listViewModel.isInThread
             val isShowingOverlay = listViewModel.isShowingOverlay
@@ -120,7 +118,7 @@ fun ChannelScreen(
                     MessageListHeader(
                         modifier = Modifier.height(56.dp),
                         channel = listViewModel.channel,
-                        currentUser = currentUser,
+                        currentUser = user,
                         onBackPressed = onBack,
                         isNetworkAvailable = isNetworkAvailable,
                         trailingContent = {
@@ -129,11 +127,11 @@ fun ChannelScreen(
                                     .size(36.dp)
                                     .clickable {
                                         val clickedUser =
-                                            listViewModel.channel.members.first { it.user.id != currentUser?.id }
+                                            listViewModel.channel.members.first { it.user.id != user?.id }
                                         onChannelAvatarClick(clickedUser.user.toDomainModel())
                                     },
                                 channel = listViewModel.channel,
-                                currentUser = currentUser,
+                                currentUser = user,
                                 contentDescription = listViewModel.channel.name,
                             )
                         }
