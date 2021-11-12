@@ -66,10 +66,15 @@ fun SettingsScreen(
                     verticalAlignment = Alignment.CenterVertically
                 ) {
                     Text(stringResource(R.string.language))
-                    Spinner(onSelectedChanged = {
-                        settingsVM.setEvent(SettingsContract.Event.OnLanguageChanged(it))
-                        context.getActivity()?.recreate()
-                    }, items = langList, text = state.lang)
+                    Spinner(
+                        modifier = Modifier.width(150.dp),
+                        onSelectedChanged = {
+                            settingsVM.setEvent(SettingsContract.Event.OnLanguageChanged(it))
+                            context.getActivity()?.recreate()
+                        },
+                        items = langList,
+                        text = state.lang
+                    )
                 }
             }
         }
